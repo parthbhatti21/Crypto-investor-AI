@@ -17,7 +17,14 @@ type Prediction = {
   outcome: boolean;
 };
 
-type Filter = "all" | "pending" | "resolved" | "mine";
+type Filter = "all" | "open" | "resolved" | "mine";
+
+const FILTER_META: { key: Filter; label: string; icon: string; desc: string }[] = [
+  { key: "all",      label: "All",      icon: "🌐", desc: "Every prediction" },
+  { key: "open",     label: "Open",     icon: "⏳", desc: "Accepting backers" },
+  { key: "resolved", label: "Resolved", icon: "✅", desc: "Closed predictions" },
+  { key: "mine",     label: "Mine",     icon: "👤", desc: "Created by you"    },
+];
 
 export default function PredictionBoard({
   address,
@@ -46,95 +53,102 @@ export default function PredictionBoard({
     setLoading(false);
   }, []);
 
-  // Reload when parent triggers refresh
   useEffect(() => { load(); }, [refreshKey, load]);
-
-  // Auto-refresh every 15 seconds
   useEffect(() => {
     const t = setInterval(() => load(), 15_000);
     return () => clearInterval(t);
   }, [load]);
 
-  const filtered = predictions.filter((p) => {
-    if (filter === "pending") return !p.resolved;
+  // Count per filter
+  const counts: Record<Filter, number> = {
+    all:      predictions.length,
+    open:     predictions.filter(p => !p.resolved).length,
+    resolved: predictions.filter(p => p.resolved).length,
+    mine:     address ? predictions.filter(p => p.creator?.toLowerCase() === address.toLowerCase()).length : 0,
+  };
+
+  const filtered = predictions.filter(p => {
+    if (filter === "open")     return !p.resolved;
     if (filter === "resolved") return p.resolved;
-    if (filter === "mine") return (
-      address && p.creator?.toLowerCase() === address.toLowerCase()
-    );
+    if (filter === "mine")     return address && p.creator?.toLowerCase() === address.toLowerCase();
     return true;
   });
 
-  const pendingCount = predictions.filter((p) => !p.resolved).length;
-  const mineCount = address
-    ? predictions.filter((p) => p.creator?.toLowerCase() === address.toLowerCase()).length
-    : 0;
-
-  const FILTERS: { key: Filter; label: string; count?: number }[] = [
-    { key: "all", label: "All", count: predictions.length },
-    { key: "pending", label: "Open", count: pendingCount },
-    { key: "resolved", label: "Resolved" },
-    ...(address ? [{ key: "mine" as Filter, label: "Mine", count: mineCount }] : []),
-  ];
+  // Only show Mine tab when connected
+  const visibleFilters = FILTER_META.filter(f => f.key !== "mine" || !!address);
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <span>📊</span> Live Predictions
-          </h3>
-          {lastFetch && !loading && (
-            <span className="text-[9px] text-zinc-600 font-mono">
-              {lastFetch.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-            </span>
-          )}
-        </div>
+    <div className="space-y-5">
 
-        {/* Filter tabs */}
-        <div className="flex gap-1 rounded-lg bg-zinc-800/50 p-1">
-          {FILTERS.map(({ key, label, count }) => (
+      {/* Section heading + timestamp */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-bold text-white">📊 Live Predictions</h3>
+        {lastFetch && !loading && (
+          <span className="text-[10px] text-zinc-600 font-mono tabular-nums">
+            Updated {lastFetch.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </span>
+        )}
+      </div>
+
+      {/* Filter cards — each on its own pill, full-width row */}
+      <div className={`grid gap-2 ${address ? "grid-cols-4" : "grid-cols-3"}`}>
+        {visibleFilters.map(({ key, label, icon }) => {
+          const active = filter === key;
+          const count = counts[key];
+          return (
             <button
               key={key}
               onClick={() => setFilter(key)}
-              className={`rounded-md px-3 py-1 text-xs font-semibold transition-all flex items-center gap-1 ${
-                filter === key ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"
+              className={`rounded-xl border px-3 py-3 text-center transition-all ${
+                active
+                  ? "bg-zinc-700 border-zinc-600 shadow-sm"
+                  : "bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/50"
               }`}
             >
-              {label}
-              {count !== undefined && count > 0 && (
-                <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
-                  filter === key ? "bg-zinc-600 text-zinc-200" : "bg-zinc-700/60 text-zinc-500"
-                }`}>
-                  {count}
-                </span>
-              )}
+              <div className="text-base mb-1">{icon}</div>
+              <div className={`text-xs font-bold ${active ? "text-white" : "text-zinc-400"}`}>
+                {label}
+              </div>
+              <div className={`text-lg font-black mt-0.5 ${
+                active ? "text-white" : "text-zinc-500"
+              }`}>
+                {count}
+              </div>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
+
+      {/* Active filter description */}
+      <p className="text-xs text-zinc-600">
+        {FILTER_META.find(f => f.key === filter)?.desc} · {filtered.length} prediction{filtered.length !== 1 ? "s" : ""}
+      </p>
 
       {/* List */}
       {loading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map(i => (
             <div key={i} className="h-40 rounded-2xl border border-zinc-800 bg-zinc-900/30 animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-12 text-center space-y-2">
-          <div className="text-4xl">🔮</div>
-          <p className="text-sm text-zinc-400">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-12 text-center space-y-3">
+          <div className="text-5xl">🔮</div>
+          <p className="text-base font-semibold text-white">
+            {filter === "mine"     ? "No predictions yet" :
+             filter === "resolved" ? "No resolved predictions yet" :
+             filter === "open"     ? "No open predictions" :
+                                    "No predictions yet"}
+          </p>
+          <p className="text-sm text-zinc-500">
             {filter === "mine"
-              ? "You haven't created any predictions yet."
-              : filter === "resolved"
-              ? "No resolved predictions yet."
-              : "No predictions yet. Create the first one!"}
+              ? "Create your first prediction using the form above."
+              : "Check back soon or create the first one!"}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {filtered.map((p) => (
+          {filtered.map(p => (
             <PredictionCard
               key={String(p.id)}
               prediction={p}
