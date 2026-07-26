@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "framework": "nextjs",
+  "buildCommand": "bun run build",
+  "installCommand": "bun install",
+  "devCommand": "bun dev",
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_PUBLIC_CONTRACT_ADDRESS": "@next_public_contract_address"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_CONTRACT_ADDRESS": "@next_public_contract_address"
+    }
+  }
+}
