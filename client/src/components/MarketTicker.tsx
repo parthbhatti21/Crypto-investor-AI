@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 type TickerItem = {
   asset: string;
@@ -65,11 +66,12 @@ export default function MarketTicker() {
                   ${formatPrice(item.price)}
                 </span>
                 <span
-                  className={`text-[10px] font-semibold ${
+                  className={`inline-flex items-center gap-0.5 text-[10px] font-semibold ${
                     isUp ? "text-emerald-400" : "text-red-400"
                   }`}
                 >
-                  {isUp ? "▲" : "▼"} {Math.abs(item.change24h).toFixed(2)}%
+                  {isUp ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+                  {Math.abs(item.change24h).toFixed(2)}%
                 </span>
               </div>
             );

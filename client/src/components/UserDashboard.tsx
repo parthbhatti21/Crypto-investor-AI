@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { getAllPredictions, getPredictionCount, formatXlm } from "@/hooks/contract";
+import { Target, BarChart3, Clock, TrendingUp, TrendingDown, Check, X } from "lucide-react";
 
 type Prediction = {
   id: bigint | number;
@@ -75,7 +76,7 @@ export default function UserDashboard({
   if (total === 0) {
     return (
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 flex items-center gap-4">
-        <span className="text-3xl">🎯</span>
+        <Target className="h-8 w-8 shrink-0 text-zinc-500" strokeWidth={1.5} />
         <div>
           <p className="text-sm font-semibold text-white">No predictions yet</p>
           <p className="text-xs text-zinc-500 mt-0.5">
@@ -90,7 +91,9 @@ export default function UserDashboard({
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-white">📊 My Stats</h3>
+        <h3 className="flex items-center gap-1.5 text-sm font-bold text-white">
+          <BarChart3 className="h-4 w-4" /> My Stats
+        </h3>
         <span className="text-[10px] font-mono text-zinc-500">
           {address.slice(0, 5)}…{address.slice(-4)}
         </span>
@@ -99,7 +102,7 @@ export default function UserDashboard({
       {/* Needs-action banner — only shown when creator has expired unresolved predictions */}
       {needsAction.length > 0 && (
         <div className="rounded-xl border border-amber-500/25 bg-amber-500/8 px-4 py-3 flex items-start gap-3">
-          <span className="text-base shrink-0">⏰</span>
+          <Clock className="h-4 w-4 shrink-0 mt-0.5 text-amber-400" />
           <div>
             <p className="text-xs font-bold text-amber-300">
               {needsAction.length} prediction{needsAction.length > 1 ? "s" : ""} need{needsAction.length === 1 ? "s" : ""} resolution
@@ -152,15 +155,19 @@ export default function UserDashboard({
             const isUp = p.direction === "UP";
             const isExpired = Date.now() >= Number(p.deadline) * 1000;
             let badge = "text-amber-400 bg-amber-500/10";
-            let label = "Active";
+            let label: ReactNode = "Active";
             if (p.resolved) {
               badge = p.outcome
                 ? "text-emerald-400 bg-emerald-500/10"
                 : "text-red-400 bg-red-500/10";
-              label = p.outcome ? "Correct ✓" : "Incorrect ✗";
+              label = p.outcome ? (
+                <span className="inline-flex items-center gap-0.5"><Check className="h-2.5 w-2.5" />Correct</span>
+              ) : (
+                <span className="inline-flex items-center gap-0.5"><X className="h-2.5 w-2.5" />Incorrect</span>
+              );
             } else if (isExpired) {
               badge = "text-amber-400 bg-amber-500/10 border border-amber-500/20";
-              label = "⏰ Resolve";
+              label = <span className="inline-flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />Resolve</span>;
             }
             return (
               <div
@@ -169,7 +176,7 @@ export default function UserDashboard({
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className={isUp ? "text-emerald-400" : "text-red-400"}>
-                    {isUp ? "📈" : "📉"}
+                    {isUp ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
                   </span>
                   <span className="text-xs font-bold text-white">{p.asset}</span>
                   <span className="text-[10px] text-zinc-500">

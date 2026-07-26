@@ -5,6 +5,7 @@ import { useWallet } from "@/context/WalletContext";
 import CreatePrediction from "@/components/CreatePrediction";
 import PredictionBoard from "@/components/PredictionBoard";
 import AiInsights from "@/components/AiInsights";
+import { Plug } from "lucide-react";
 
 export default function PredictionsClient() {
   const { address } = useWallet();
@@ -47,7 +48,7 @@ export default function PredictionsClient() {
               </div>
             ) : (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-8 text-center space-y-3">
-                <div className="text-4xl">🔌</div>
+                <Plug className="h-10 w-10 mx-auto text-zinc-600" strokeWidth={1.5} />
                 <p className="text-base font-bold text-white">Connect your wallet to create predictions</p>
                 <p className="text-sm text-zinc-500">You can still browse and view existing predictions below.</p>
               </div>

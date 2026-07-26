@@ -5,12 +5,14 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useWallet } from "@/context/WalletContext";
 import MarketTicker from "./MarketTicker";
+import { Zap, Sparkles, Bot, Briefcase, ClipboardList, Check, Copy, X, ExternalLink, type LucideIcon } from "lucide-react";
 
-const NAV_LINKS = [
-  { href: "/", label: "Home", icon: "⚡" },
-  { href: "/predictions", label: "Predictions", icon: "🔮" },
-  { href: "/markets", label: "Markets", icon: "🤖" },
-  { href: "/portfolio", label: "Portfolio", icon: "💼" },
+const NAV_LINKS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/",             label: "Home",         icon: Zap           },
+  { href: "/predictions",  label: "Predictions",  icon: Sparkles      },
+  { href: "/markets",      label: "Markets",      icon: Bot           },
+  { href: "/transactions", label: "Transactions", icon: ClipboardList },
+  { href: "/portfolio",    label: "Portfolio",    icon: Briefcase     },
 ];
 
 function WalletButton() {
@@ -48,13 +50,15 @@ function WalletButton() {
             <span className="text-[10px] font-mono text-white">{address.slice(0, 5)}…{address.slice(-4)}</span>
             {balance !== null && <span className="text-[9px] text-zinc-500 mt-0.5">{balance} XLM</span>}
           </div>
-          <span className="text-[9px] text-zinc-600 group-hover:text-zinc-400">{copied ? "✓" : "⎘"}</span>
+          <span className="text-zinc-600 group-hover:text-zinc-400">
+            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+          </span>
         </button>
         <button
           onClick={disconnect}
-          className="rounded-xl border border-zinc-700/40 bg-zinc-800/40 px-3 py-2 text-[10px] font-semibold text-zinc-500 hover:text-red-400 hover:border-red-500/30 transition-all"
+          className="rounded-xl border border-zinc-700/40 bg-zinc-800/40 px-3 py-2 text-zinc-500 hover:text-red-400 hover:border-red-500/30 transition-all"
         >
-          ✕
+          <X className="h-3.5 w-3.5" />
         </button>
       </div>
     );
@@ -87,7 +91,7 @@ function WalletButton() {
       {error && (
         <p className="text-[10px] text-red-400 max-w-[240px] text-right leading-snug">
           {error.includes("not found") ? (
-            <>Not installed. <a href="https://freighter.app" target="_blank" rel="noopener noreferrer" className="underline">Get Freighter ↗</a></>
+            <>Not installed. <a href="https://freighter.app" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 underline">Get Freighter <ExternalLink className="h-2.5 w-2.5" /></a></>
           ) : error}
         </p>
       )}
@@ -106,8 +110,8 @@ export default function Nav() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 shrink-0">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-lg shadow-violet-500/25 text-lg">
-              🔮
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-lg shadow-violet-500/25">
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-bold text-white leading-none">StellarPulse AI</p>
@@ -117,7 +121,7 @@ export default function Nav() {
 
           {/* Desktop nav links */}
           <nav className="hidden md:flex items-center gap-1 rounded-xl bg-zinc-800/40 p-1 border border-zinc-700/30">
-            {NAV_LINKS.map(({ href, label, icon }) => {
+            {NAV_LINKS.map(({ href, label, icon: Icon }) => {
               const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
               return (
                 <Link
@@ -129,7 +133,7 @@ export default function Nav() {
                       : "text-zinc-400 hover:text-white hover:bg-zinc-700/50"
                   }`}
                 >
-                  <span className="text-sm">{icon}</span>
+                  <Icon className="h-4 w-4" />
                   {label}
                 </Link>
               );
@@ -161,7 +165,7 @@ export default function Nav() {
         {mobileOpen && (
           <div className="md:hidden border-t border-zinc-800/50 bg-[#09090b]/95 backdrop-blur-xl px-4 pb-4 pt-2">
             <nav className="flex flex-col gap-1">
-              {NAV_LINKS.map(({ href, label, icon }) => {
+              {NAV_LINKS.map(({ href, label, icon: Icon }) => {
                 const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
                 return (
                   <Link
@@ -174,7 +178,7 @@ export default function Nav() {
                         : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
                     }`}
                   >
-                    <span>{icon}</span>
+                    <Icon className="h-4 w-4" />
                     {label}
                   </Link>
                 );

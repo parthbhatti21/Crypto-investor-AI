@@ -4,6 +4,7 @@ import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
 import { WalletProvider } from "@/context/WalletContext";
 import Nav from "@/components/Nav";
+import { Sparkles } from "lucide-react";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -36,8 +37,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <footer className="border-t border-zinc-800/40">
               <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 text-xs">
-                    🔮
+                  <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600">
+                    <Sparkles className="h-3.5 w-3.5 text-white" />
                   </div>
                   <p className="text-xs text-zinc-600">StellarPulse AI · Built on Stellar Soroban</p>
                 </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { connectWallet, getWalletAddress, fetchXlmBalance } from "@/hooks/contract";
+import { Check, Copy, X, ExternalLink } from "lucide-react";
 
 export default function WalletConnect({
   onConnect,
@@ -92,8 +93,8 @@ export default function WalletConnect({
               <span className="text-[9px] text-zinc-500 mt-0.5">{balance} XLM</span>
             )}
           </div>
-          <span className="text-[9px] text-zinc-600 group-hover:text-zinc-400 transition-colors">
-            {copied ? "✓" : "⎘"}
+          <span className="text-zinc-600 group-hover:text-zinc-400 transition-colors">
+            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
           </span>
         </button>
 
@@ -101,9 +102,9 @@ export default function WalletConnect({
         <button
           onClick={handleDisconnect}
           title="Disconnect"
-          className="rounded-xl border border-zinc-700/40 bg-zinc-800/40 px-3 py-2 text-[10px] font-semibold text-zinc-500 hover:text-red-400 hover:border-red-500/30 transition-all"
+          className="rounded-xl border border-zinc-700/40 bg-zinc-800/40 px-3 py-2 text-zinc-500 hover:text-red-400 hover:border-red-500/30 transition-all"
         >
-          ✕
+          <X className="h-3.5 w-3.5" />
         </button>
       </div>
     );
@@ -139,7 +140,7 @@ export default function WalletConnect({
       {error && (
         <p className="text-[10px] text-red-400 max-w-[260px] text-right leading-snug">
           {error.includes("not found")
-            ? <>Freighter not installed. <a href="https://freighter.app" target="_blank" rel="noopener noreferrer" className="underline hover:text-red-300">Get it here ↗</a></>
+            ? <>Freighter not installed. <a href="https://freighter.app" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 underline hover:text-red-300">Get it here <ExternalLink className="h-2.5 w-2.5" /></a></>
             : error}
         </p>
       )}

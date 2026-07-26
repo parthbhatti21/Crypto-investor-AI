@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { backPrediction, resolvePrediction, claimRewards, formatXlm } from "@/hooks/contract";
+import { TrendingUp, TrendingDown, Check, X, Trophy, CheckCircle2, AlertTriangle } from "lucide-react";
 
 type Prediction = {
   id: bigint | number;
@@ -80,8 +81,8 @@ export default function PredictionCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className={`h-10 w-10 shrink-0 flex items-center justify-center rounded-xl text-lg ${isUp ? "bg-emerald-500/10" : "bg-red-500/10"}`}>
-            {isUp ? "📈" : "📉"}
+          <div className={`h-10 w-10 shrink-0 flex items-center justify-center rounded-xl ${isUp ? "bg-emerald-500/10" : "bg-red-500/10"}`}>
+            {isUp ? <TrendingUp className="h-5 w-5 text-emerald-400" /> : <TrendingDown className="h-5 w-5 text-red-400" />}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
@@ -109,8 +110,9 @@ export default function PredictionCard({
               <p className="text-[10px] text-zinc-600 font-mono">{countdown}</p>
             </>
           ) : (
-            <div className={`text-[10px] font-bold rounded-full px-2 py-0.5 inline-block ${prediction.outcome ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
-              {prediction.outcome ? "✓ Correct" : "✗ Incorrect"}
+            <div className={`inline-flex items-center gap-0.5 text-[10px] font-bold rounded-full px-2 py-0.5 ${prediction.outcome ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
+              {prediction.outcome ? <Check className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
+              {prediction.outcome ? "Correct" : "Incorrect"}
             </div>
           )}
         </div>
@@ -178,16 +180,16 @@ export default function PredictionCard({
               <button
                 onClick={() => run(() => resolvePrediction(address, id, true))}
                 disabled={loading}
-                className="flex-1 rounded-lg bg-emerald-600 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-emerald-600 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition-all active:scale-95 disabled:opacity-50"
               >
-                ✓ Yes, it was correct
+                <Check className="h-3.5 w-3.5" /> Yes, it was correct
               </button>
               <button
                 onClick={() => run(() => resolvePrediction(address, id, false))}
                 disabled={loading}
-                className="flex-1 rounded-lg bg-red-600 py-2 text-xs font-bold text-white hover:bg-red-500 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-red-600 py-2 text-xs font-bold text-white hover:bg-red-500 transition-all active:scale-95 disabled:opacity-50"
               >
-                ✗ No, I was wrong
+                <X className="h-3.5 w-3.5" /> No, I was wrong
               </button>
             </div>
           </div>
@@ -198,9 +200,9 @@ export default function PredictionCard({
           <button
             onClick={() => run(() => claimRewards(address, id))}
             disabled={loading}
-            className="w-full rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 py-2.5 text-xs font-bold text-white hover:from-amber-400 hover:to-orange-400 transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-amber-500/20"
+            className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 py-2.5 text-xs font-bold text-white hover:from-amber-400 hover:to-orange-400 transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-amber-500/20"
           >
-            {loading ? "Claiming…" : "🏆 Claim Rewards"}
+            {loading ? "Claiming…" : <><Trophy className="h-3.5 w-3.5" /> Claim Rewards</>}
           </button>
         )}
       </div>
@@ -212,7 +214,7 @@ export default function PredictionCard({
             ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
             : "bg-red-500/10 border border-red-500/20 text-red-400"
         }`}>
-          <span>{feedback.type === "ok" ? "✅" : "⚠️"}</span>
+          <span className="shrink-0">{feedback.type === "ok" ? <CheckCircle2 className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}</span>
           <span className="break-all">{feedback.msg}</span>
         </div>
       )}

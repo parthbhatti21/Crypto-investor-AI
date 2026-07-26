@@ -1,55 +1,69 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import HomeClient from "@/components/HomeClient";
+import { Sparkles, Bot, Trophy, Briefcase, Zap, DollarSign, CheckCircle2, Globe, type LucideIcon } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "StellarPulse AI — Predict Markets, Earn XLM",
 };
 
-const FEATURES = [
+const FEATURES: {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+  href: string;
+  cta: string;
+  color: string;
+  btn: string;
+  iconColor: string;
+}[] = [
   {
-    icon: "🔮",
+    icon: Sparkles,
     title: "Make Predictions",
     desc: "Choose any asset, set a target price, pick UP or DOWN, stake XLM, and submit to the blockchain.",
     href: "/predictions",
     cta: "Start predicting",
     color: "from-violet-500/10 to-violet-500/5 border-violet-500/20",
     btn: "bg-violet-600 hover:bg-violet-500",
+    iconColor: "text-violet-400",
   },
   {
-    icon: "🤖",
+    icon: Bot,
     title: "AI Market Signals",
     desc: "Real-time AI signals derived from live prices, 7-day trends, and trading volume on 6 major assets.",
     href: "/markets",
     cta: "View signals",
     color: "from-indigo-500/10 to-indigo-500/5 border-indigo-500/20",
     btn: "bg-indigo-600 hover:bg-indigo-500",
+    iconColor: "text-indigo-400",
   },
   {
-    icon: "🏆",
+    icon: Trophy,
     title: "Earn Rewards",
     desc: "Back others' predictions. When the deadline passes, winners claim their proportional share of the pool.",
     href: "/predictions",
     cta: "Browse predictions",
     color: "from-amber-500/10 to-amber-500/5 border-amber-500/20",
     btn: "bg-amber-600 hover:bg-amber-500",
+    iconColor: "text-amber-400",
   },
   {
-    icon: "💼",
+    icon: Briefcase,
     title: "Track Portfolio",
     desc: "See all your predictions, win rate, total XLM staked, and send XLM to any Stellar address.",
     href: "/portfolio",
     cta: "My portfolio",
     color: "from-emerald-500/10 to-emerald-500/5 border-emerald-500/20",
     btn: "bg-emerald-600 hover:bg-emerald-500",
+    iconColor: "text-emerald-400",
   },
 ];
 
-const STATS = [
-  { label: "Settlement time", value: "< 5s", icon: "⚡" },
-  { label: "Transaction fee", value: "~$0.00001", icon: "💰" },
-  { label: "Smart contract tests", value: "13 passing", icon: "✅" },
-  { label: "Network", value: "Stellar Testnet", icon: "🌐" },
+const STATS: { label: string; value: string; icon: LucideIcon }[] = [
+  { label: "Settlement time", value: "< 5s", icon: Zap },
+  { label: "Transaction fee", value: "~$0.00001", icon: DollarSign },
+  { label: "Smart contract tests", value: "13 passing", icon: CheckCircle2 },
+  { label: "Network", value: "Stellar Testnet", icon: Globe },
 ];
 
 export default function HomePage() {
@@ -94,7 +108,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {STATS.map((s) => (
               <div key={s.label} className="rounded-2xl border border-zinc-800/60 bg-zinc-900/30 p-5 text-center hover:border-zinc-700/60 transition-all">
-                <div className="text-2xl mb-3">{s.icon}</div>
+                <s.icon className="h-6 w-6 mx-auto mb-3 text-zinc-400" />
                 <div className="text-lg font-black text-white">{s.value}</div>
                 <div className="text-[11px] text-zinc-500 uppercase tracking-wider mt-1">{s.label}</div>
               </div>
@@ -111,7 +125,7 @@ export default function HomePage() {
           <div className="grid sm:grid-cols-2 gap-5">
             {FEATURES.map((f) => (
               <div key={f.title} className={`rounded-2xl border bg-gradient-to-br p-6 space-y-4 ${f.color}`}>
-                <div className="text-3xl">{f.icon}</div>
+                <f.icon className={`h-8 w-8 ${f.iconColor}`} strokeWidth={1.75} />
                 <div>
                   <h3 className="text-lg font-bold text-white">{f.title}</h3>
                   <p className="text-sm text-zinc-400 mt-1.5 leading-relaxed">{f.desc}</p>

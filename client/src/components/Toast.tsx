@@ -9,6 +9,7 @@ import {
   useRef,
   ReactNode,
 } from "react";
+import { CheckCircle2, AlertTriangle, Info, Loader2, X, type LucideIcon } from "lucide-react";
 
 type ToastType = "success" | "error" | "info" | "pending";
 
@@ -31,11 +32,11 @@ type ToastContextValue = {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
-const ICONS: Record<ToastType, string> = {
-  success: "✅",
-  error: "⚠️",
-  info: "ℹ️",
-  pending: "⏳",
+const ICONS: Record<ToastType, LucideIcon> = {
+  success: CheckCircle2,
+  error: AlertTriangle,
+  info: Info,
+  pending: Loader2,
 };
 
 const STYLES: Record<ToastType, string> = {
@@ -53,6 +54,7 @@ function ToastItem({
   onDismiss: (id: string) => void;
 }) {
   const [visible, setVisible] = useState(false);
+  const Icon = ICONS[t.type];
 
   useEffect(() => {
     // Enter animation
@@ -69,7 +71,7 @@ function ToastItem({
       }`}
       style={{ minWidth: 280, maxWidth: 360 }}
     >
-      <span className="text-base shrink-0 mt-0.5">{ICONS[t.type]}</span>
+      <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${t.type === "pending" ? "animate-spin" : ""}`} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold leading-snug">{t.title}</p>
         {t.message && (
@@ -78,9 +80,9 @@ function ToastItem({
       </div>
       <button
         onClick={() => onDismiss(t.id)}
-        className="shrink-0 opacity-50 hover:opacity-100 transition-opacity text-sm leading-none mt-0.5"
+        className="shrink-0 opacity-50 hover:opacity-100 transition-opacity mt-0.5"
       >
-        ✕
+        <X className="h-3.5 w-3.5" />
       </button>
     </div>
   );

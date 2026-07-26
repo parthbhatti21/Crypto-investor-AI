@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useWallet } from "@/context/WalletContext";
+import { TrendingUp, TrendingDown, Minus, RefreshCw, ArrowRight, type LucideIcon } from "lucide-react";
 
 type MarketInsight = {
   asset: string;
@@ -21,10 +22,10 @@ type MarketInsight = {
   athPct: string | null;
 };
 
-const sentimentConfig = {
-  bullish: { color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/25", bar: "bg-emerald-500", icon: "📈", label: "Bullish", glow: "shadow-emerald-500/10" },
-  bearish: { color: "text-red-400",     bg: "bg-red-500/10 border-red-500/25",         bar: "bg-red-500",     icon: "📉", label: "Bearish", glow: "shadow-red-500/10"     },
-  neutral: { color: "text-amber-400",   bg: "bg-amber-500/10 border-amber-500/25",     bar: "bg-amber-500",   icon: "➡️", label: "Neutral", glow: "shadow-amber-500/10"  },
+const sentimentConfig: Record<string, { color: string; bg: string; bar: string; icon: LucideIcon; label: string; glow: string }> = {
+  bullish: { color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/25", bar: "bg-emerald-500", icon: TrendingUp,   label: "Bullish", glow: "shadow-emerald-500/10" },
+  bearish: { color: "text-red-400",     bg: "bg-red-500/10 border-red-500/25",         bar: "bg-red-500",     icon: TrendingDown, label: "Bearish", glow: "shadow-red-500/10"     },
+  neutral: { color: "text-amber-400",   bg: "bg-amber-500/10 border-amber-500/25",     bar: "bg-amber-500",   icon: Minus,         label: "Neutral", glow: "shadow-amber-500/10"  },
 };
 
 function fmt(p: number) {
@@ -109,9 +110,7 @@ export default function MarketsClient() {
               disabled={refreshing || loading}
               className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800/50 px-4 py-2 text-xs font-semibold text-zinc-300 hover:text-white hover:border-zinc-600 transition-all disabled:opacity-40"
             >
-              <svg className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} strokeWidth={2.5} />
               Refresh
             </button>
           </div>
@@ -163,16 +162,17 @@ export default function MarketsClient() {
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
                         <span className="text-base font-black text-white">{insight.asset}</span>
-                        <span className={`rounded-lg border px-2 py-0.5 text-[9px] font-bold uppercase ${cfg.bg} ${cfg.color}`}>
-                          {cfg.icon} {cfg.label}
+                        <span className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[9px] font-bold uppercase ${cfg.bg} ${cfg.color}`}>
+                          <cfg.icon className="h-2.5 w-2.5" /> {cfg.label}
                         </span>
                       </div>
                       <span className="text-[11px] text-zinc-500">{insight.name}</span>
                     </div>
                     <div className="text-right space-y-0.5">
                       <p className="text-sm font-black text-white font-mono">{fmt(insight.price)}</p>
-                      <p className={`text-[11px] font-bold ${up ? "text-emerald-400" : "text-red-400"}`}>
-                        {up ? "▲" : "▼"}{Math.abs(insight.change24h).toFixed(2)}%
+                      <p className={`inline-flex items-center gap-0.5 text-[11px] font-bold ${up ? "text-emerald-400" : "text-red-400"}`}>
+                        {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                        {Math.abs(insight.change24h).toFixed(2)}%
                       </p>
                     </div>
                   </div>
@@ -223,7 +223,7 @@ export default function MarketsClient() {
                       onClick={e => e.stopPropagation()}
                       className="flex items-center justify-center gap-1.5 w-full rounded-lg border border-zinc-700/60 bg-zinc-800/40 py-2 text-[11px] font-semibold text-zinc-400 hover:text-white hover:border-zinc-600 transition-all"
                     >
-                      Predict {insight.asset} →
+                      Predict {insight.asset} <ArrowRight className="h-3 w-3" />
                     </Link>
                   )}
                 </div>

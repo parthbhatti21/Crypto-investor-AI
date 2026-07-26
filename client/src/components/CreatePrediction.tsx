@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPrediction, parseXlm } from "@/hooks/contract";
+import { Sparkles, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Rocket } from "lucide-react";
 
 const ASSETS = ["XLM", "BTC", "ETH", "SOL", "DOGE", "ADA"];
 const DURATIONS = [
@@ -105,7 +106,7 @@ export default function CreatePrediction({
     >
       <div className="flex items-center justify-between">
         <h3 className="text-base font-bold text-white flex items-center gap-2">
-          🔮 Create a Prediction
+          <Sparkles className="h-4 w-4 text-violet-400" /> Create a Prediction
         </h3>
         {currentAsset && (
           <div className="flex items-center gap-1.5 text-[10px]">
@@ -114,11 +115,11 @@ export default function CreatePrediction({
               ${formatPrice(currentAsset.price)}
             </span>
             <span
-              className={`font-semibold ${
+              className={`inline-flex items-center gap-0.5 font-semibold ${
                 currentAsset.change24h >= 0 ? "text-emerald-400" : "text-red-400"
               }`}
             >
-              {currentAsset.change24h >= 0 ? "▲" : "▼"}
+              {currentAsset.change24h >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
               {Math.abs(currentAsset.change24h).toFixed(2)}%
             </span>
           </div>
@@ -201,7 +202,10 @@ export default function CreatePrediction({
                   : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
               }`}
             >
-              {d === "UP" ? "📈 Going UP" : "📉 Going DOWN"}
+              <span className="inline-flex items-center gap-1.5">
+                {d === "UP" ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                Going {d === "UP" ? "UP" : "DOWN"}
+              </span>
             </button>
           ))}
         </div>
@@ -304,13 +308,13 @@ export default function CreatePrediction({
 
       {error && (
         <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-2.5 text-xs text-red-400 flex gap-2">
-          <span>⚠️</span>
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
       {success && (
         <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-4 py-2.5 text-xs text-emerald-400 flex gap-2">
-          <span>✅</span>
+          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
           <span>Prediction submitted to Stellar!</span>
         </div>
       )}
@@ -335,7 +339,9 @@ export default function CreatePrediction({
             Submitting to Stellar…
           </span>
         ) : (
-          "🚀 Submit Prediction"
+          <span className="flex items-center justify-center gap-1.5">
+            <Rocket className="h-4 w-4" /> Submit Prediction
+          </span>
         )}
       </button>
     </form>

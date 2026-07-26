@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Bot, TrendingUp, TrendingDown, Minus, RefreshCw, Check, type LucideIcon } from "lucide-react";
 
 type MarketInsight = {
   asset: string;
@@ -15,26 +16,26 @@ type MarketInsight = {
   sparkline: number[];
 };
 
-const sentimentConfig = {
+const sentimentConfig: Record<string, { color: string; bg: string; bar: string; icon: LucideIcon; label: string }> = {
   bullish: {
     color: "text-emerald-400",
     bg: "bg-emerald-500/10 border-emerald-500/25",
     bar: "bg-emerald-500",
-    icon: "📈",
+    icon: TrendingUp,
     label: "Bullish",
   },
   bearish: {
     color: "text-red-400",
     bg: "bg-red-500/10 border-red-500/25",
     bar: "bg-red-500",
-    icon: "📉",
+    icon: TrendingDown,
     label: "Bearish",
   },
   neutral: {
     color: "text-amber-400",
     bg: "bg-amber-500/10 border-amber-500/25",
     bar: "bg-amber-500",
-    icon: "➡️",
+    icon: Minus,
     label: "Neutral",
   },
 };
@@ -117,7 +118,7 @@ export default function AiInsights({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-base font-bold text-white flex items-center gap-2">
-          🤖 AI Market Signals
+          <Bot className="h-4 w-4 text-indigo-400" /> AI Market Signals
         </h3>
         <div className="flex items-center gap-2">
           {lastUpdated && (
@@ -131,9 +132,10 @@ export default function AiInsights({
           <button
             onClick={() => fetch_(true)}
             disabled={refreshing || loading}
-            className="rounded-lg border border-zinc-700 bg-zinc-800/50 px-2.5 py-1 text-[10px] font-semibold text-zinc-400 hover:text-white hover:border-zinc-600 transition-all disabled:opacity-40"
+            className="flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800/50 px-2.5 py-1 text-[10px] font-semibold text-zinc-400 hover:text-white hover:border-zinc-600 transition-all disabled:opacity-40"
           >
-            {refreshing ? "…" : "↻ Refresh"}
+            <RefreshCw className={`h-2.5 w-2.5 ${refreshing ? "animate-spin" : ""}`} />
+            Refresh
           </button>
         </div>
       </div>
@@ -179,13 +181,13 @@ export default function AiInsights({
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-sm font-bold text-white">{insight.asset}</span>
                     <span
-                      className={`rounded-md border px-1.5 py-0.5 text-[9px] font-bold uppercase ${cfg.bg} ${cfg.color}`}
+                      className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9px] font-bold uppercase ${cfg.bg} ${cfg.color}`}
                     >
-                      {cfg.icon} {cfg.label}
+                      <cfg.icon className="h-2.5 w-2.5" /> {cfg.label}
                     </span>
                     {isSelected && (
-                      <span className="text-[9px] font-bold text-violet-400 bg-violet-500/10 rounded px-1.5 py-0.5">
-                        ✓ Selected
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-violet-400 bg-violet-500/10 rounded px-1.5 py-0.5">
+                        <Check className="h-2.5 w-2.5" /> Selected
                       </span>
                     )}
                   </div>
@@ -196,11 +198,11 @@ export default function AiInsights({
                         {formatPrice(insight.price)}
                       </p>
                       <p
-                        className={`text-[10px] font-semibold ${
+                        className={`inline-flex items-center gap-0.5 text-[10px] font-semibold ${
                           up ? "text-emerald-400" : "text-red-400"
                         }`}
                       >
-                        {up ? "▲" : "▼"}
+                        {up ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
                         {Math.abs(insight.change24h).toFixed(2)}%
                       </p>
                     </div>

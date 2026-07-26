@@ -5,6 +5,7 @@ import { useWallet } from "@/context/WalletContext";
 import UserDashboard from "@/components/UserDashboard";
 import SendXLM from "@/components/SendXLM";
 import Link from "next/link";
+import { Briefcase } from "lucide-react";
 
 export default function PortfolioClient() {
   const { address, setBalanceFromExternal } = useWallet();
@@ -14,7 +15,7 @@ export default function PortfolioClient() {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
         <div className="text-center space-y-4 p-8">
-          <div className="text-6xl">💼</div>
+          <Briefcase className="h-14 w-14 mx-auto text-zinc-600" strokeWidth={1.5} />
           <h1 className="text-2xl font-black text-white">Your Portfolio</h1>
           <p className="text-zinc-500 max-w-sm mx-auto text-sm leading-relaxed">
             Connect your Freighter wallet to view your prediction history, win rate, and send XLM.
