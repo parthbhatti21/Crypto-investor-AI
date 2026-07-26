@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Job 1: Soroban smart contract tests ──────────────────────────
+  contract-tests:
+    name: Contract Tests (Rust / Soroban)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            contract/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('contract/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Run contract tests
+        working-directory: contract/contracts/contract
+        run: cargo test --verbose 2>&1
+
+  # ── Job 2: Next.js frontend build ────────────────────────────────
+  frontend-build:
+    name: Frontend Build (Next.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: client
+        run: bun install --frozen-lockfile
+
+      - name: Type check
+        working-directory: client
+        run: npx tsc --noEmit
+
+      - name: Build
+        working-directory: client
+        env:
+          NEXT_PUBLIC_CONTRACT_ADDRESS: CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4
+        run: bun run build
+
+  # ── Job 3: Lint ───────────────────────────────────────────────────
+  lint:
+    name: Lint (ESLint)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: client
+        run: bun install --frozen-lockfile
+
+      - name: Run ESLint
+        working-directory: client
+        run: bun run lint
