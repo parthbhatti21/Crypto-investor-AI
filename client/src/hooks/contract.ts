@@ -188,12 +188,26 @@ async function simulateRead(method: string, args: xdr.ScVal[]): Promise<xdr.ScVa
 
 export async function getPrediction(id: number): Promise<any> {
   const v = await simulateRead("get_prediction", [toScValU64(id)]);
-  return v ? (scValToNative(v) as any) : null;
+  if (!v) return null;
+  const raw = scValToNative(v) as any;
+  if (!raw) return null;
+  // Normalise BigInt fields to strings so components can safely call .toString()
+  return {
+    ...raw,
+    id: Number(raw.id ?? id),
+    stake: raw.stake?.toString() ?? "0",
+    total_pool: raw.total_pool?.toString() ?? "0",
+    target_price: raw.target_price?.toString() ?? "0",
+    deadline: Number(raw.deadline ?? 0),
+  };
 }
 
 export async function getPredictionCount(): Promise<number> {
   const v = await simulateRead("get_prediction_count", []);
-  return v ? ((scValToNative(v) as number) || 0) : 0;
+  if (!v) return 0;
+  // scValToNative returns bigint for u64 — convert to plain number
+  const raw = scValToNative(v);
+  return Number(raw) || 0;
 }
 
 export async function getAllPredictions(count: number): Promise<any[]> {
