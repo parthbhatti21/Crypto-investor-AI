@@ -41,6 +41,66 @@ View on Stellar Expert: https://stellar.expert/explorer/testnet/contract/CBE5T4A
 
 ---
 
+## Level 2 requirements
+
+### 1. 3 error types handled
+
+All three are handled in `client/src/hooks/contract.ts` and surfaced in the UI:
+
+| # | Error type | Where it's thrown | What the user sees |
+|---|---|---|---|
+| 1 | **Wallet / extension error** | `connectWallet()` — Freighter not installed, site not approved, user rejects signing | Inline message under Connect button: *"Freighter not installed. Get it here"* or *"Freighter: User declined"* |
+| 2 | **Contract / simulation error** | `buildAndSign()` — `server.prepareTransaction()` fails (bad args, contract panic, deadline not passed, auth failure) | Error displayed inside the prediction form or card: *"Simulation failed: ..."* |
+| 3 | **Network / transaction error** | `sendXlmPayment()` — invalid destination address, insufficient balance, Horizon `result_codes` (`op_underfunded`, `tx_bad_seq`) | Error displayed in Send XLM form: *"op_underfunded"* or *"Invalid destination address"* |
+
+### 2. Contract deployed on testnet
+
+**Contract address:** `CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4`
+
+Deployed to Stellar Testnet via:
+```bash
+stellar contract deploy --wasm hello_world.wasm --source deployer --network testnet
+stellar contract invoke --id CBE5T4... --source deployer --network testnet -- init
+```
+
+Explorer: https://stellar.expert/explorer/testnet/contract/CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4
+
+### 3. Contract called from the frontend
+
+All 4 write functions and 2 read functions in `client/src/hooks/contract.ts` call the deployed contract:
+
+```
+create_prediction  →  CreatePrediction.tsx  (user submits a prediction)
+back_prediction    →  PredictionCard.tsx    (user backs a prediction)
+resolve_prediction →  PredictionCard.tsx    (creator resolves after deadline)
+claim_rewards      →  PredictionCard.tsx    (winner claims XLM)
+get_prediction     →  contract.ts           (reads single prediction by ID)
+get_prediction_count → contract.ts          (reads total count to paginate)
+```
+
+Write calls go through `server.prepareTransaction()` (assembles Soroban footprint) → Freighter signs → `server.sendTransaction()` → poll until confirmed.
+
+Read calls use `server.simulateTransaction()` with a throwaway account — no signature or fees needed.
+
+### 4. Transaction status visible
+
+Every on-chain operation shows real-time status in the UI:
+
+- **Soroban transactions** (create/back/resolve/claim): spinner while pending → green success message or red error on the prediction card
+- **XLM payments** (Send XLM): `pending` state while Freighter signs → `success` state with ledger number, tx hash, and a direct link to Stellar Expert → `error` state with the Horizon result code
+- **Wallet connect**: spinner on button → connected state shows address + live XLM balance → error message if extension missing or user rejects
+
+### 5. Minimum 2+ meaningful commits
+
+```
+6e079a1  feat: Add AI market insights, predictions UI, and XLM transactions
+c79a44e  Update README.md
+a6c1c11  init
+e9295d8  Initialize repository
+```
+
+---
+
 ## Features
 
 ### Wallet
