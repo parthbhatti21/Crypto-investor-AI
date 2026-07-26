@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <p className="text-xs text-zinc-600">StellarPulse AI · Built on Stellar Soroban</p>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-zinc-600">
-                  <span>Contract: <span className="font-mono text-zinc-500">CBE5T4…NBZZX4</span></span>
+                  <span>Contract: <span className="font-mono text-zinc-500">CBMYC7K2…W4DO</span></span>
                   <div className="flex items-center gap-1.5">
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-emerald-600">Testnet Online</span>

@@ -60,7 +60,7 @@ jobs:
       - name: Build
         working-directory: client
         env:
-          NEXT_PUBLIC_CONTRACT_ADDRESS: CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4
+          NEXT_PUBLIC_CONTRACT_ADDRESS: CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO
         run: bun run build
 
   # ── Job 3: Lint ───────────────────────────────────────────────────

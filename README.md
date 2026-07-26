@@ -23,8 +23,8 @@ The platform also provides real-time AI market signals derived from live price d
 
 App runs at **http://localhost:3000** (local dev).
 
-**Deployed contract:** `CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4`
-View on Stellar Expert: https://stellar.expert/explorer/testnet/contract/CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4
+**Deployed contract:** `CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO`
+View on Stellar Expert: https://stellar.expert/explorer/testnet/contract/CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO
 
 ---
 
@@ -50,6 +50,7 @@ The `PredictionPlatform` Soroban contract uses:
 - **Authorization via `require_auth()`** — every write function enforces the correct signer
 - **On-chain business logic** — reward calculation, deadline enforcement, double-claim prevention all happen inside the contract, not the frontend
 - **Multi-party interaction** — creator, multiple backers, and claimers all interact with the same prediction object
+- **Real token escrow** — stakes are pulled into the contract and rewards paid out via the native XLM Stellar Asset Contract (SEP-41 token interface), not just recorded as numbers
 
 ### Inter-contract communication
 
@@ -93,13 +94,15 @@ stellar contract deploy \
   --wasm target/wasm32v1-none/release/hello_world.wasm \
   --source deployer --network testnet
 
-# 3. Initialise
+# 3. Initialise with the native XLM Stellar Asset Contract (SAC) — used to
+#    escrow stakes and pay out rewards for real
+NATIVE_XLM=$(stellar contract id asset --asset native --network testnet)
 stellar contract invoke \
-  --id CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4 \
-  --source deployer --network testnet -- init
+  --id CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO \
+  --source deployer --network testnet -- init --token "$NATIVE_XLM"
 ```
 
-**Deployed contract:** `CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4`
+**Deployed contract:** `CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO`
 
 ### Mobile responsive frontend
 
@@ -175,15 +178,15 @@ All three are handled in `client/src/hooks/contract.ts` and surfaced in the UI:
 
 ### 2. Contract deployed on testnet
 
-**Contract address:** `CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4`
+**Contract address:** `CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO`
 
 Deployed to Stellar Testnet via:
 ```bash
 stellar contract deploy --wasm hello_world.wasm --source deployer --network testnet
-stellar contract invoke --id CBE5T4... --source deployer --network testnet -- init
+stellar contract invoke --id CBMYC7K2... --source deployer --network testnet -- init --token <NATIVE_XLM_SAC_ADDRESS>
 ```
 
-Explorer: https://stellar.expert/explorer/testnet/contract/CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4
+Explorer: https://stellar.expert/explorer/testnet/contract/CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO
 
 ### 3. Contract called from the frontend
 
@@ -332,7 +335,7 @@ Crypto-investor-AI/
 │ Horizon │  │  Soroban RPC                              │
 │ Testnet │  │                                           │
 │         │  │  PredictionPlatform contract              │
-│ XLM     │  │  CBE5T4...NBZZX4                          │
+│ XLM     │  │  CBMYC7K2...W4DO                          │
 │ payments│  │                                           │
 └─────────┘  │  create_prediction  back_prediction       │
              │  resolve_prediction claim_rewards          │
@@ -346,13 +349,13 @@ Crypto-investor-AI/
 
 Written in Rust using the Soroban SDK. Deployed to Stellar testnet.
 
-**Contract address:** `CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4`
+**Contract address:** `CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO`
 
 ### Functions
 
 | Function | Description |
 |---|---|
-| `init` | Initialise the prediction counter (called once on deploy) |
+| `init` | Set the prediction counter and the token (native XLM SAC) used for escrow/payouts (called once on deploy) |
 | `create_prediction` | Create a new prediction with asset, direction, target price, stake, deadline |
 | `back_prediction` | Back an existing prediction with XLM |
 | `resolve_prediction` | Creator marks prediction correct/incorrect after deadline |
@@ -368,6 +371,11 @@ reward = (backer_stake × total_pool) / total_backing_pool
 ```
 
 Winners get back their stake plus a proportional share of the creator's stake.
+
+Stakes are escrowed for real: `create_prediction` and `back_prediction` transfer XLM
+from the caller into the contract via the native XLM Stellar Asset Contract, and
+`claim_rewards` transfers the computed reward back out to the winning backer —
+this isn't just bookkeeping, the XLM actually moves on-chain.
 
 ---
 
@@ -392,7 +400,7 @@ bun install
 Create `client/.env.local`:
 
 ```
-NEXT_PUBLIC_CONTRACT_ADDRESS=CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4
+NEXT_PUBLIC_CONTRACT_ADDRESS=CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO
 ```
 
 ### 3. Run the app
@@ -447,12 +455,14 @@ stellar contract deploy \
   --source deployer \
   --network testnet
 
-# Initialise (once)
+# Initialise (once) with the native XLM Stellar Asset Contract address —
+# this is what the contract escrows stakes in and pays rewards out of
+NATIVE_XLM=$(stellar contract id asset --asset native --network testnet)
 stellar contract invoke \
   --id <CONTRACT_ADDRESS> \
   --source deployer \
   --network testnet \
-  -- init
+  -- init --token "$NATIVE_XLM"
 ```
 
 ---
@@ -486,7 +496,7 @@ A successful XLM send on testnet:
 | README with complete documentation | ✅ | This file |
 | 10+ meaningful commits | ✅ | See `git log --oneline` |
 | Live demo link | ✅ | Deployed on Vercel (set Root Directory to `client`) |
-| Contract deployment address | ✅ | `CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4` |
+| Contract deployment address | ✅ | `CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO` |
 | Transaction hash | ✅ | `6bebff751d11ed36e909c48ac4c356286ba1985dded94a11f3f7b2f9188bfe8f` |
 | Mobile responsive UI screenshot | ✅ | See `docs/` folder |
 | CI/CD pipeline screenshot | ✅ | GitHub Actions at `.github/workflows/ci.yml` |

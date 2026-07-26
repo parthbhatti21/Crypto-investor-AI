@@ -25,8 +25,8 @@ type SortDir = "asc" | "desc";
 
 const ASSETS = ["All", "XLM", "BTC", "ETH", "SOL", "DOGE", "ADA"];
 
-function StatusBadge({ p }: { p: Prediction }) {
-  const expired = Date.now() >= p.deadline * 1000;
+function StatusBadge({ p, now }: { p: Prediction; now: number }) {
+  const expired = now >= p.deadline * 1000;
   if (p.resolved) {
     return p.outcome
       ? <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400"><Check className="h-2.5 w-2.5" /> Correct</span>
@@ -38,8 +38,8 @@ function StatusBadge({ p }: { p: Prediction }) {
   return <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400"><Clock className="h-2.5 w-2.5" /> Open</span>;
 }
 
-function DeadlineCell({ deadline }: { deadline: number }) {
-  const ms = deadline * 1000 - Date.now();
+function DeadlineCell({ deadline, now }: { deadline: number; now: number }) {
+  const ms = deadline * 1000 - now;
   if (ms <= 0) return <span className="text-zinc-500 text-xs">Expired</span>;
   const d = Math.floor(ms / 86400000);
   const h = Math.floor((ms % 86400000) / 3600000);
@@ -52,6 +52,7 @@ export default function TransactionsClient() {
   const { address } = useWallet();
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(() => Date.now());
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -64,18 +65,25 @@ export default function TransactionsClient() {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   useEffect(() => {
-    setLoading(true);
     getPredictionCount()
       .then(count => getAllPredictions(count))
-      .then(preds => setPredictions(preds as Prediction[]))
-      .catch(() => setPredictions([]))
-      .finally(() => setLoading(false));
+      .then(preds => {
+        setPredictions(preds as Prediction[]);
+        setLoading(false);
+      })
+      .catch(() => {
+        setPredictions([]);
+        setLoading(false);
+      });
+    // tick every minute so deadline display stays fresh
+    const t = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(t);
   }, []);
 
   const filtered = useMemo(() => {
     let rows = [...predictions];
 
-    if (statusFilter === "open")     rows = rows.filter(p => !p.resolved && Date.now() < p.deadline * 1000);
+    if (statusFilter === "open")     rows = rows.filter(p => !p.resolved && now < p.deadline * 1000);
     if (statusFilter === "resolved") rows = rows.filter(p => p.resolved);
     if (statusFilter === "mine")     rows = rows.filter(p => address && p.creator?.toLowerCase() === address.toLowerCase());
     if (assetFilter !== "All")       rows = rows.filter(p => p.asset === assetFilter);
@@ -99,7 +107,7 @@ export default function TransactionsClient() {
     });
 
     return rows;
-  }, [predictions, statusFilter, assetFilter, directionFilter, search, sortKey, sortDir, address]);
+  }, [predictions, statusFilter, assetFilter, directionFilter, search, sortKey, sortDir, address, now]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -116,7 +124,7 @@ export default function TransactionsClient() {
 
   const STATUS_TABS: { key: StatusFilter; label: string }[] = [
     { key: "all",      label: `All (${predictions.length})` },
-    { key: "open",     label: `Open (${predictions.filter(p => !p.resolved && Date.now() < p.deadline * 1000).length})` },
+    { key: "open",     label: `Open (${predictions.filter(p => !p.resolved && now < p.deadline * 1000).length})` },
     { key: "resolved", label: `Resolved (${predictions.filter(p => p.resolved).length})` },
     ...(address ? [{ key: "mine" as StatusFilter, label: `Mine (${predictions.filter(p => p.creator?.toLowerCase() === address.toLowerCase()).length})` }] : []),
   ];
@@ -267,7 +275,7 @@ export default function TransactionsClient() {
                     </span>
 
                     {/* Status */}
-                    <StatusBadge p={p} />
+                    <StatusBadge p={p} now={now} />
 
                     {/* Staked */}
                     <span className="text-xs text-zinc-300 font-mono">{formatXlm(p.stake)} XLM</span>
@@ -286,7 +294,7 @@ export default function TransactionsClient() {
                     </div>
 
                     {/* Deadline */}
-                    <DeadlineCell deadline={p.deadline} />
+                    <DeadlineCell deadline={p.deadline} now={now} />
 
                     {/* Creator */}
                     <span className="text-[10px] font-mono text-zinc-600 truncate">
@@ -300,7 +308,7 @@ export default function TransactionsClient() {
         )}
 
         <p className="text-[10px] text-zinc-700 text-center">
-          All data sourced directly from the Stellar Soroban smart contract · CBE5T4…NBZZX4
+          All data sourced directly from the Stellar Soroban smart contract · CBMYC7K2…W4DO
         </p>
       </div>
     </div>

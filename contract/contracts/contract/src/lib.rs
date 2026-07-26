@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String, Vec};
+use soroban_sdk::{contract, contractimpl, contracttype, token, Address, Env, MuxedAddress, String, Vec};
 
 #[contracttype]
 #[derive(Clone)]
@@ -19,6 +19,7 @@ pub struct Prediction {
 #[contracttype]
 pub enum DataKey {
     Count,
+    Token,
     Prediction(u64),
     Backing(u64, Address),
     Claimed(u64, Address),
@@ -30,8 +31,19 @@ pub struct PredictionPlatform;
 
 #[contractimpl]
 impl PredictionPlatform {
-    pub fn init(env: Env) {
+    pub fn init(env: Env, token: Address) {
         env.storage().instance().set(&DataKey::Count, &0_u64);
+        env.storage().instance().set(&DataKey::Token, &token);
+    }
+
+    /// Token used to escrow stakes and pay out rewards (the native XLM Stellar Asset Contract on deploy).
+    fn token_client(env: &Env) -> token::TokenClient<'_> {
+        let token_address: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Token)
+            .expect("token not set");
+        token::TokenClient::new(env, &token_address)
     }
 
     pub fn create_prediction(
@@ -44,6 +56,11 @@ impl PredictionPlatform {
         deadline: u64,
     ) -> u64 {
         creator.require_auth();
+
+        // Escrow the creator's stake in the contract.
+        let contract_address = env.current_contract_address();
+        Self::token_client(&env).transfer(&creator, &MuxedAddress::from(contract_address), &stake);
+
         let id: u64 = env.storage().instance().get(&DataKey::Count).unwrap_or(0) + 1;
 
         let pred = Prediction {
@@ -85,6 +102,10 @@ impl PredictionPlatform {
             .get(&DataKey::Prediction(prediction_id))
             .expect("prediction not found");
         assert!(!pred.resolved, "prediction already resolved");
+
+        // Escrow the backer's stake in the contract.
+        let contract_address = env.current_contract_address();
+        Self::token_client(&env).transfer(&backer, &MuxedAddress::from(contract_address), &amount);
 
         pred.total_pool += amount;
         env.storage()
@@ -173,6 +194,10 @@ impl PredictionPlatform {
         }
 
         let reward = (backer_stake * (pred.stake + pred.total_pool)) / pred.total_pool;
+        if reward > 0 {
+            let contract_address = env.current_contract_address();
+            Self::token_client(&env).transfer(&contract_address, &MuxedAddress::from(backer), &reward);
+        }
         reward
     }
 

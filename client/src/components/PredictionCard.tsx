@@ -50,6 +50,8 @@ export default function PredictionCard({
   const [backAmount, setBackAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "ok" | "err"; msg: string } | null>(null);
+  const [claimed, setClaimed] = useState(false);
+  const [claimedAmount, setClaimedAmount] = useState<string | null>(null);
 
   const id = Number(prediction.id);
   const isCreator = address?.toLowerCase() === prediction.creator?.toLowerCase();
@@ -69,6 +71,25 @@ export default function PredictionCard({
     setFeedback(null);
     try { await fn(); onAction(); }
     catch (e: any) { showFeedback("err", e.message || "Transaction failed"); }
+    setLoading(false);
+  };
+
+  const handleClaim = async () => {
+    setLoading(true);
+    setFeedback(null);
+    try {
+      const reward = await claimRewards(address, id);
+      const amount = formatXlm((reward ?? 0).toString());
+      setClaimed(true);
+      setClaimedAmount(amount);
+      showFeedback(
+        "ok",
+        Number(amount) > 0 ? `You received ${amount} XLM!` : "Already claimed — nothing more to receive."
+      );
+      onAction();
+    } catch (e: any) {
+      showFeedback("err", e.message || "Transaction failed");
+    }
     setLoading(false);
   };
 
@@ -197,13 +218,19 @@ export default function PredictionCard({
 
         {/* Claim rewards */}
         {prediction.resolved && prediction.outcome && address && (
-          <button
-            onClick={() => run(() => claimRewards(address, id))}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 py-2.5 text-xs font-bold text-white hover:from-amber-400 hover:to-orange-400 transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-amber-500/20"
-          >
-            {loading ? "Claiming…" : <><Trophy className="h-3.5 w-3.5" /> Claim Rewards</>}
-          </button>
+          claimed ? (
+            <div className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 py-2.5 text-xs font-bold text-emerald-400">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Claimed {claimedAmount} XLM
+            </div>
+          ) : (
+            <button
+              onClick={handleClaim}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 py-2.5 text-xs font-bold text-white hover:from-amber-400 hover:to-orange-400 transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-amber-500/20"
+            >
+              {loading ? "Claiming…" : <><Trophy className="h-3.5 w-3.5" /> Claim Rewards</>}
+            </button>
+          )
         )}
       </div>
 
