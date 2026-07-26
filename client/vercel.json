@@ -6,11 +6,11 @@
   "devCommand": "bun dev",
   "outputDirectory": ".next",
   "env": {
-    "NEXT_PUBLIC_CONTRACT_ADDRESS": "@next_public_contract_address"
+    "NEXT_PUBLIC_CONTRACT_ADDRESS": "CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4"
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_CONTRACT_ADDRESS": "@next_public_contract_address"
+      "NEXT_PUBLIC_CONTRACT_ADDRESS": "CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4"
     }
   }
 }
