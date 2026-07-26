@@ -1,108 +1,303 @@
-# 🤖 Crypto Investor AI
+# StellarPulse AI
 
-> An AI-powered Web3 investor prediction platform built on the Stellar blockchain.
+> AI-powered crypto prediction market built on the Stellar blockchain (Soroban smart contracts).
 
 [![Stellar](https://img.shields.io/badge/Blockchain-Stellar-blue)](https://stellar.org/)
 [![Soroban](https://img.shields.io/badge/Smart%20Contracts-Soroban-purple)](https://soroban.stellar.org/)
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2016-black)](https://nextjs.org/)
 [![GitHub](https://img.shields.io/badge/GitHub-Public%20Repository-black)](https://github.com/parthbhatti21/Crypto-investor-AI)
 
 ---
 
-## 🔗 Public GitHub Repository
+## What it does
 
-The complete source code for this project is publicly available on GitHub:
+StellarPulse AI lets users make crypto price predictions, back other users' predictions with XLM, and earn rewards when correct — all settled on-chain via a Soroban smart contract on the Stellar testnet.
 
-👉 **[Crypto Investor AI – GitHub Repository](https://github.com/parthbhatti21/Crypto-investor-AI)**
+The platform also provides real-time AI market signals derived from live price data, 24h/7d momentum, and trading volume — giving users context before they commit to a prediction.
 
----
-
-## 📌 Project Description
-
-**Crypto Investor AI** is a Web3 application that combines **Artificial Intelligence and blockchain technology** to help users explore crypto investment predictions and interact with the Stellar blockchain.
-
-The platform provides AI-powered investor insights while allowing users to connect their Stellar wallet, view their XLM balance, perform transactions on the Stellar Testnet, and receive transaction results directly inside the application.
-
-The project demonstrates how AI and Web3 can work together to create a transparent, accessible, and blockchain-powered investment experience.
-
-> ⚠️ AI-generated predictions are for educational and experimental purposes only and should not be considered financial advice.
+> AI signals are for informational purposes only and are not financial advice.
 
 ---
 
-## ✨ Key Features
+## Live demo
 
-### 🤖 AI-Powered Investor Predictions
+App runs at **http://localhost:3000** (local dev).
 
-The platform uses AI-powered analysis to generate insights and predictions related to crypto investment opportunities.
-
-Users can explore:
-
-- Market insights
-- Crypto investment predictions
-- Potential opportunities
-- AI-generated analysis
-- Prediction-based investor insights
-
-### 🔗 Stellar Wallet Connection
-
-Users can connect their Stellar-compatible wallet to the application.
-
-After connecting their wallet, users can interact with the Web3 features of the platform.
-
-The application displays the connected wallet address to confirm the successful wallet connection.
-
-### 💰 XLM Balance Display
-
-After the wallet is connected, the application retrieves and displays the user's XLM balance from the Stellar network.
-
-### ⚡ Stellar Blockchain Transactions
-
-Users can perform transactions using their connected Stellar wallet.
-
-The transaction is submitted to the Stellar Testnet and processed through the blockchain.
-
-### ✅ Transaction Result Display
-
-After a successful transaction, the application displays the result to the user.
-
-The transaction result includes information such as:
-
-- Transaction status
-- Transaction hash
-- Confirmation result
-- Blockchain transaction details
+**Deployed contract:** `CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4`
+View on Stellar Expert: https://stellar.expert/explorer/testnet/contract/CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4
 
 ---
 
-## 🏗️ Project Architecture
+## Screenshots
 
-```text
-┌───────────────────────────────┐
-│       User / Investor         │
-└───────────────┬───────────────┘
-                │
-                ▼
-┌───────────────────────────────┐
-│        Client Application     │
-│                               │
-│  • AI Predictions             │
-│  • Wallet Connection          │
-│  • Balance Display            │
-│  • Transaction Interface      │
-└───────────────┬───────────────┘
-                │
-        ┌───────┴────────┐
-        │                │
-        ▼                ▼
-┌───────────────┐  ┌───────────────┐
-│   AI Engine    │  │ Stellar Wallet│
-│               │  │               │
-│ Predictions   │  │ User Approval │
-└───────────────┘  └───────┬───────┘
-                           │
-                           ▼
-                  ┌────────────────┐
-                  │ Stellar Network│
-                  │                │
-                  │ Testnet        │
-                  │ Transactions   │
-                  └────────────────┘
+### Platform — AI insights + live ticker + wallet connected
+![Platform overview](docs/Screenshot%202026-07-26%20at%2020.09.13.png)
+
+### Successful XLM transaction on Stellar Expert
+![Transaction confirmed](docs/Screenshot%202026-07-26%20at%2022.08.34.png)
+
+### Send XLM — confirmed transaction UI
+![Send XLM](docs/Screenshot%202026-07-26%20at%2022.08.45.png)
+
+---
+
+## Features
+
+### Wallet
+- Connect Freighter wallet (Stellar testnet)
+- Auto-reconnect if site was previously approved
+- Display XLM balance fetched from Horizon
+- Copy wallet address to clipboard
+- Disconnect
+
+### Predictions (Soroban smart contract)
+- Create a prediction: pick asset, direction (UP/DOWN), target price, stake XLM, set deadline
+- Back other users' predictions with XLM — grows the reward pool
+- Creator resolves the prediction after the deadline
+- Winners claim their proportional share of the total pool
+
+### Send XLM
+- Send native XLM to any Stellar G-address
+- Signs via Freighter, submits to Stellar Horizon
+- Displays transaction hash + ledger number
+- Links directly to Stellar Expert explorer
+
+### AI Market Signals
+- Live price data from CoinGecko (BTC, ETH, XLM, SOL, DOGE, ADA)
+- Sentiment (bullish / bearish / neutral) derived from 24h price change, 7d trend, volume
+- Confidence score per asset
+- 7-day sparkline charts
+- Refreshes every 30 seconds
+
+### Live Price Ticker
+- Scrolling real-time price ticker in the header
+- Shows current price and 24h % change per asset
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4 |
+| Blockchain | Stellar Testnet, Soroban (smart contracts in Rust) |
+| Wallet | Freighter (browser extension) via `@stellar/freighter-api` v6 |
+| SDK | `@stellar/stellar-sdk` v16 |
+| Market data | CoinGecko public API |
+| RPC | Stellar Soroban RPC (`soroban-testnet.stellar.org`) |
+| Payments | Stellar Horizon (`horizon-testnet.stellar.org`) |
+
+---
+
+## Project structure
+
+```
+Crypto-investor-AI/
+├── client/                          # Next.js frontend
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── page.tsx             # Main page
+│   │   │   ├── layout.tsx           # Root layout
+│   │   │   ├── globals.css          # Global styles
+│   │   │   └── api/
+│   │   │       └── market-insights/ # AI market signals API route
+│   │   ├── components/
+│   │   │   ├── WalletConnect.tsx    # Freighter wallet connect/disconnect
+│   │   │   ├── CreatePrediction.tsx # Prediction creation form
+│   │   │   ├── PredictionBoard.tsx  # List of all predictions
+│   │   │   ├── PredictionCard.tsx   # Individual prediction (back/resolve/claim)
+│   │   │   ├── UserDashboard.tsx    # Personal stats (predictions, win rate)
+│   │   │   ├── SendXLM.tsx          # XLM payment form
+│   │   │   ├── AiInsights.tsx       # AI market signal cards
+│   │   │   ├── MarketTicker.tsx     # Live scrolling price ticker
+│   │   │   └── Toast.tsx            # Notification system
+│   │   └── hooks/
+│   │       └── contract.ts          # All Stellar/Soroban/Horizon logic
+│   ├── .env.local                   # Contract address (not committed)
+│   └── package.json
+└── contract/                        # Soroban smart contract (Rust)
+    └── contracts/contract/
+        ├── src/
+        │   ├── lib.rs               # Contract logic
+        │   └── test.rs              # 13 unit tests
+        └── Cargo.toml
+```
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Browser (Next.js)                     │
+│                                                          │
+│  MarketTicker  WalletConnect  AiInsights                 │
+│                                                          │
+│  CreatePrediction → PredictionBoard → PredictionCard     │
+│  UserDashboard    → SendXLM                              │
+└──────────────┬──────────────────────┬───────────────────┘
+               │                      │
+               ▼                      ▼
+┌──────────────────────┐  ┌───────────────────────────────┐
+│  Freighter Wallet    │  │  CoinGecko API                 │
+│  (browser extension) │  │  /api/market-insights          │
+│                      │  │  AI sentiment + confidence     │
+│  Signs transactions  │  └───────────────────────────────┘
+└──────────┬───────────┘
+           │
+     ┌─────┴──────┐
+     │            │
+     ▼            ▼
+┌─────────┐  ┌──────────────────────────────────────────┐
+│ Horizon │  │  Soroban RPC                              │
+│ Testnet │  │                                           │
+│         │  │  PredictionPlatform contract              │
+│ XLM     │  │  CBE5T4...NBZZX4                          │
+│ payments│  │                                           │
+└─────────┘  │  create_prediction  back_prediction       │
+             │  resolve_prediction claim_rewards          │
+             │  get_prediction     get_prediction_count   │
+             └──────────────────────────────────────────┘
+```
+
+---
+
+## Smart contract
+
+Written in Rust using the Soroban SDK. Deployed to Stellar testnet.
+
+**Contract address:** `CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4`
+
+### Functions
+
+| Function | Description |
+|---|---|
+| `init` | Initialise the prediction counter (called once on deploy) |
+| `create_prediction` | Create a new prediction with asset, direction, target price, stake, deadline |
+| `back_prediction` | Back an existing prediction with XLM |
+| `resolve_prediction` | Creator marks prediction correct/incorrect after deadline |
+| `claim_rewards` | Winning backers claim their proportional share of the pool |
+| `get_prediction` | Read a single prediction by ID |
+| `get_prediction_count` | Get total number of predictions |
+| `get_user_backings` | Get prediction IDs backed by a user |
+
+### Reward calculation
+
+```
+reward = (backer_stake × total_pool) / total_backing_pool
+```
+
+Winners get back their stake plus a proportional share of the creator's stake.
+
+---
+
+## Getting started
+
+### Prerequisites
+
+- [Freighter wallet](https://freighter.app) browser extension
+- Node.js 18+ or [Bun](https://bun.sh)
+- Rust + Cargo (for contract development)
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/parthbhatti21/Crypto-investor-AI
+cd Crypto-investor-AI/client
+bun install
+```
+
+### 2. Set the contract address
+
+Create `client/.env.local`:
+
+```
+NEXT_PUBLIC_CONTRACT_ADDRESS=CBE5T4ATWSPIS7PRNM5FPUB6CJXDZHG5JPA23H3KSQF5WTJOS7NBZZX4
+```
+
+### 3. Run the app
+
+```bash
+bun dev
+```
+
+Open http://localhost:3000
+
+### 4. Fund your testnet wallet
+
+Your Freighter wallet needs testnet XLM to transact. Run this once with your wallet address:
+
+```bash
+curl "https://friendbot.stellar.org?addr=YOUR_G_ADDRESS"
+```
+
+Or use the [Stellar Friendbot web UI](https://friendbot.stellar.org).
+
+---
+
+## Contract development
+
+### Build
+
+```bash
+cd contract/contracts/contract
+stellar contract build
+```
+
+Output: `target/wasm32v1-none/release/hello_world.wasm`
+
+### Test
+
+```bash
+cargo test
+```
+
+13 tests covering: create, back, resolve, claim, double-claim prevention, deadline enforcement, auth checks.
+
+### Deploy (testnet)
+
+```bash
+# Generate and fund a deployer identity
+stellar keys generate deployer --network testnet
+stellar keys fund deployer --network testnet
+
+# Deploy
+stellar contract deploy \
+  --wasm target/wasm32v1-none/release/hello_world.wasm \
+  --source deployer \
+  --network testnet
+
+# Initialise (once)
+stellar contract invoke \
+  --id <CONTRACT_ADDRESS> \
+  --source deployer \
+  --network testnet \
+  -- init
+```
+
+---
+
+## Transaction example
+
+A successful XLM send on testnet:
+
+- **Hash:** `6bebff751d11ed36e909c48ac4c356286ba1985dded94a11f3f7b2f9188bfe8f`
+- **Ledger:** 3813094
+- **Fee charged:** 0.00001 XLM
+- **Explorer:** https://stellar.expert/explorer/testnet/tx/6bebff751d11ed36e909c48ac4c356286ba1985dded94a11f3f7b2f9188bfe8f
+
+---
+
+## Wallet setup (first time)
+
+1. Install [Freighter](https://freighter.app) from the Chrome Web Store
+2. Create a wallet and switch to **Testnet** in Freighter settings
+3. Fund your account via [Friendbot](https://friendbot.stellar.org)
+4. Open http://localhost:3000 and click **Connect Freighter**
+5. Approve the connection in the Freighter popup
+
+---
+
+## License
+
+MIT
