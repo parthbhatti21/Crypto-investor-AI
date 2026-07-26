@@ -43,12 +43,21 @@ export default function UserDashboard({
 
   if (!address) return null;
 
-  // Compute simple stats
   const total = myPredictions.length;
   const active = myPredictions.filter((p) => !p.resolved).length;
   const correct = myPredictions.filter((p) => p.resolved && p.outcome).length;
   const resolved = myPredictions.filter((p) => p.resolved).length;
   const winRate = resolved > 0 ? Math.round((correct / resolved) * 100) : null;
+
+  // Predictions that have expired but not been resolved yet — creator needs to act
+  const needsAction = myPredictions.filter(
+    (p) => !p.resolved && Date.now() >= Number(p.deadline) * 1000
+  );
+
+  // Total XLM staked across all my predictions
+  const totalStaked = myPredictions.reduce(
+    (s, p) => s + parseFloat(formatXlm(p.stake.toString())), 0
+  );
 
   if (loading) {
     return (
@@ -69,7 +78,9 @@ export default function UserDashboard({
         <span className="text-3xl">🎯</span>
         <div>
           <p className="text-sm font-semibold text-white">No predictions yet</p>
-          <p className="text-xs text-zinc-500 mt-0.5">Create your first prediction below to start tracking your stats.</p>
+          <p className="text-xs text-zinc-500 mt-0.5">
+            Create your first prediction below to start tracking your stats.
+          </p>
         </div>
       </div>
     );
@@ -77,12 +88,32 @@ export default function UserDashboard({
 
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-white">📊 My Stats</h3>
-        <span className="text-[10px] font-mono text-zinc-500">{address.slice(0, 5)}…{address.slice(-4)}</span>
+        <span className="text-[10px] font-mono text-zinc-500">
+          {address.slice(0, 5)}…{address.slice(-4)}
+        </span>
       </div>
 
-      {/* Three key numbers */}
+      {/* Needs-action banner — only shown when creator has expired unresolved predictions */}
+      {needsAction.length > 0 && (
+        <div className="rounded-xl border border-amber-500/25 bg-amber-500/8 px-4 py-3 flex items-start gap-3">
+          <span className="text-base shrink-0">⏰</span>
+          <div>
+            <p className="text-xs font-bold text-amber-300">
+              {needsAction.length} prediction{needsAction.length > 1 ? "s" : ""} need{needsAction.length === 1 ? "s" : ""} resolution
+            </p>
+            <p className="text-[10px] text-amber-600 mt-0.5">
+              Scroll to{" "}
+              {needsAction.map((p) => `${p.asset} #${Number(p.id)}`).join(", ")}{" "}
+              and mark {needsAction.length > 1 ? "them" : "it"} correct or incorrect.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl bg-zinc-800/50 p-3 text-center">
           <p className="text-2xl font-black text-white">{total}</p>
@@ -98,12 +129,22 @@ export default function UserDashboard({
           <p className="text-2xl font-black text-violet-400">
             {winRate !== null ? `${winRate}%` : "—"}
           </p>
-          <p className="text-[10px] text-zinc-500 mt-1">{resolved > 0 ? "resolved" : "no data yet"}</p>
-          <p className="text-[9px] text-zinc-600 uppercase tracking-wide mt-0.5">Win Rate</p>
+          <p className="text-[10px] text-zinc-500 mt-1">
+            {resolved > 0 ? "win rate" : "no resolved yet"}
+          </p>
+          <p className="text-[9px] text-zinc-600 uppercase tracking-wide mt-0.5">Accuracy</p>
         </div>
       </div>
 
-      {/* Recent list */}
+      {/* Total staked */}
+      {totalStaked > 0 && (
+        <div className="rounded-lg bg-zinc-800/30 border border-zinc-700/30 px-3 py-2 flex items-center justify-between">
+          <span className="text-[10px] text-zinc-500">Total staked across all predictions</span>
+          <span className="text-xs font-bold text-violet-400">{totalStaked.toFixed(2)} XLM</span>
+        </div>
+      )}
+
+      {/* Recent predictions list */}
       {myPredictions.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Recent</p>
@@ -113,20 +154,31 @@ export default function UserDashboard({
             let badge = "text-amber-400 bg-amber-500/10";
             let label = "Active";
             if (p.resolved) {
-              badge = p.outcome ? "text-emerald-400 bg-emerald-500/10" : "text-red-400 bg-red-500/10";
+              badge = p.outcome
+                ? "text-emerald-400 bg-emerald-500/10"
+                : "text-red-400 bg-red-500/10";
               label = p.outcome ? "Correct ✓" : "Incorrect ✗";
             } else if (isExpired) {
-              badge = "text-zinc-400 bg-zinc-800";
-              label = "Needs resolution";
+              badge = "text-amber-400 bg-amber-500/10 border border-amber-500/20";
+              label = "⏰ Resolve";
             }
             return (
-              <div key={String(p.id)} className="flex items-center justify-between rounded-lg bg-zinc-800/40 px-3 py-2 gap-3">
+              <div
+                key={String(p.id)}
+                className="flex items-center justify-between rounded-lg bg-zinc-800/40 px-3 py-2 gap-3"
+              >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className={isUp ? "text-emerald-400" : "text-red-400"}>{isUp ? "📈" : "📉"}</span>
+                  <span className={isUp ? "text-emerald-400" : "text-red-400"}>
+                    {isUp ? "📈" : "📉"}
+                  </span>
                   <span className="text-xs font-bold text-white">{p.asset}</span>
-                  <span className="text-[10px] text-zinc-500">{formatXlm(p.stake.toString())} XLM staked</span>
+                  <span className="text-[10px] text-zinc-500">
+                    {formatXlm(p.stake.toString())} XLM
+                  </span>
                 </div>
-                <span className={`text-[9px] font-bold rounded px-2 py-0.5 shrink-0 ${badge}`}>{label}</span>
+                <span className={`text-[9px] font-bold rounded px-2 py-0.5 shrink-0 ${badge}`}>
+                  {label}
+                </span>
               </div>
             );
           })}

@@ -28,11 +28,13 @@ function formatPrice(p: number) {
 export default function CreatePrediction({
   address,
   onSuccess,
+  defaultAsset,
 }: {
   address: string;
   onSuccess: () => void;
+  defaultAsset?: string;
 }) {
-  const [asset, setAsset] = useState("XLM");
+  const [asset, setAsset] = useState(defaultAsset ?? "XLM");
   const [direction, setDirection] = useState<"UP" | "DOWN">("UP");
   const [targetPrice, setTargetPrice] = useState("");
   const [stake, setStake] = useState("");
@@ -40,9 +42,16 @@ export default function CreatePrediction({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-
   const [marketData, setMarketData] = useState<Record<string, MarketInsight>>({});
 
+  // When parent passes a new defaultAsset (from AI card click), apply it
+  useEffect(() => {
+    if (defaultAsset && ASSETS.includes(defaultAsset)) {
+      setAsset(defaultAsset);
+    }
+  }, [defaultAsset]);
+
+  // Fetch live market data for price suggestions
   useEffect(() => {
     fetch("/api/market-insights", { cache: "no-store" })
       .then((r) => r.json())
@@ -54,12 +63,14 @@ export default function CreatePrediction({
       .catch(() => {});
   }, []);
 
-  // Auto-fill target price when asset or direction changes
+  // Auto-fill target price at ±5% of current price
   useEffect(() => {
     const d = marketData[asset];
     if (!d) return;
     const suggested = d.price * (direction === "UP" ? 1.05 : 0.95);
-    setTargetPrice(suggested.toFixed(suggested < 1 ? 6 : suggested < 100 ? 4 : 2));
+    setTargetPrice(
+      suggested.toFixed(suggested < 1 ? 6 : suggested < 100 ? 4 : 2)
+    );
   }, [asset, direction, marketData]);
 
   const currentAsset = marketData[asset];
@@ -72,7 +83,10 @@ export default function CreatePrediction({
     setSuccess(false);
     try {
       const deadline = Math.floor(Date.now() / 1000) + duration * 3600;
-      await createPrediction(address, asset, direction, parseXlm(targetPrice), parseXlm(stake), deadline);
+      await createPrediction(
+        address, asset, direction,
+        parseXlm(targetPrice), parseXlm(stake), deadline
+      );
       setTargetPrice("");
       setStake("");
       setSuccess(true);
@@ -85,14 +99,37 @@ export default function CreatePrediction({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-5">
-      <h3 className="text-base font-bold text-white flex items-center gap-2">
-        🔮 Create a Prediction
-      </h3>
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-5"
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-bold text-white flex items-center gap-2">
+          🔮 Create a Prediction
+        </h3>
+        {currentAsset && (
+          <div className="flex items-center gap-1.5 text-[10px]">
+            <span className="text-zinc-500">Live:</span>
+            <span className="text-white font-mono font-bold">
+              ${formatPrice(currentAsset.price)}
+            </span>
+            <span
+              className={`font-semibold ${
+                currentAsset.change24h >= 0 ? "text-emerald-400" : "text-red-400"
+              }`}
+            >
+              {currentAsset.change24h >= 0 ? "▲" : "▼"}
+              {Math.abs(currentAsset.change24h).toFixed(2)}%
+            </span>
+          </div>
+        )}
+      </div>
 
-      {/* Step 1 — Pick asset */}
+      {/* Step 1 — Asset */}
       <div>
-        <p className="text-xs font-semibold text-zinc-400 mb-2">Step 1 — Which asset?</p>
+        <p className="text-xs font-semibold text-zinc-400 mb-2">
+          Step 1 — Which asset?
+        </p>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {ASSETS.map((a) => {
             const d = marketData[a];
@@ -109,10 +146,17 @@ export default function CreatePrediction({
               >
                 <div>{a}</div>
                 {d && (
-                  <div className={`text-[9px] mt-0.5 ${
-                    asset === a ? "text-violet-200" : d.change24h >= 0 ? "text-emerald-400" : "text-red-400"
-                  }`}>
-                    {d.change24h >= 0 ? "+" : ""}{d.change24h.toFixed(1)}%
+                  <div
+                    className={`text-[9px] mt-0.5 ${
+                      asset === a
+                        ? "text-violet-200"
+                        : d.change24h >= 0
+                        ? "text-emerald-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {d.change24h >= 0 ? "+" : ""}
+                    {d.change24h.toFixed(1)}%
                   </div>
                 )}
               </button>
@@ -121,50 +165,58 @@ export default function CreatePrediction({
         </div>
         {currentAsset && (
           <p className="text-[11px] text-zinc-500 mt-2">
-            Current price: <span className="text-white font-mono">${formatPrice(currentAsset.price)}</span>
-            {" · "}AI signal: <span className={`font-semibold ${
-              currentAsset.sentiment === "bullish" ? "text-emerald-400" :
-              currentAsset.sentiment === "bearish" ? "text-red-400" : "text-amber-400"
-            }`}>{currentAsset.sentiment}</span>
+            AI signal:{" "}
+            <span
+              className={`font-semibold ${
+                currentAsset.sentiment === "bullish"
+                  ? "text-emerald-400"
+                  : currentAsset.sentiment === "bearish"
+                  ? "text-red-400"
+                  : "text-amber-400"
+              }`}
+            >
+              {currentAsset.sentiment}
+            </span>{" "}
+            · confidence {currentAsset.confidence}%
           </p>
         )}
       </div>
 
       {/* Step 2 — Direction */}
       <div>
-        <p className="text-xs font-semibold text-zinc-400 mb-2">Step 2 — Will it go up or down?</p>
+        <p className="text-xs font-semibold text-zinc-400 mb-2">
+          Step 2 — Will it go up or down?
+        </p>
         <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => setDirection("UP")}
-            className={`rounded-xl py-3.5 text-sm font-bold transition-all ${
-              direction === "UP"
-                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
-                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
-            }`}
-          >
-            📈 Going UP
-          </button>
-          <button
-            type="button"
-            onClick={() => setDirection("DOWN")}
-            className={`rounded-xl py-3.5 text-sm font-bold transition-all ${
-              direction === "DOWN"
-                ? "bg-red-600 text-white shadow-lg shadow-red-500/20"
-                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
-            }`}
-          >
-            📉 Going DOWN
-          </button>
+          {(["UP", "DOWN"] as const).map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => setDirection(d)}
+              className={`rounded-xl py-3.5 text-sm font-bold transition-all ${
+                direction === d
+                  ? d === "UP"
+                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
+                    : "bg-red-600 text-white shadow-lg shadow-red-500/20"
+                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+              }`}
+            >
+              {d === "UP" ? "📈 Going UP" : "📉 Going DOWN"}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Step 3 — Price & stake */}
       <div>
-        <p className="text-xs font-semibold text-zinc-400 mb-2">Step 3 — Set your target price and stake</p>
+        <p className="text-xs font-semibold text-zinc-400 mb-2">
+          Step 3 — Target price and stake
+        </p>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-[10px] text-zinc-500 mb-1.5">Target price (USD)</label>
+            <label className="block text-[10px] text-zinc-500 mb-1.5">
+              Target price (USD)
+            </label>
             <input
               type="number"
               step="any"
@@ -174,10 +226,14 @@ export default function CreatePrediction({
               required
               className="w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500/40 transition-all"
             />
-            <p className="text-[9px] text-zinc-600 mt-1">Pre-filled with a ±5% suggestion</p>
+            <p className="text-[9px] text-zinc-600 mt-1">
+              Pre-filled at ±5% of live price
+            </p>
           </div>
           <div>
-            <label className="block text-[10px] text-zinc-500 mb-1.5">Your stake (XLM)</label>
+            <label className="block text-[10px] text-zinc-500 mb-1.5">
+              Your stake (XLM)
+            </label>
             <input
               type="number"
               step="0.01"
@@ -195,7 +251,9 @@ export default function CreatePrediction({
 
       {/* Step 4 — Duration */}
       <div>
-        <p className="text-xs font-semibold text-zinc-400 mb-2">Step 4 — How long until resolution?</p>
+        <p className="text-xs font-semibold text-zinc-400 mb-2">
+          Step 4 — How long until resolution?
+        </p>
         <div className="grid grid-cols-4 gap-2">
           {DURATIONS.map((d) => (
             <button
@@ -218,23 +276,42 @@ export default function CreatePrediction({
       {targetPrice && stake && (
         <div className="rounded-xl bg-zinc-800/40 border border-zinc-700/40 px-4 py-3">
           <p className="text-xs text-zinc-300">
-            You're predicting <span className="font-bold text-white">{asset}</span> will go{" "}
-            <span className={`font-bold ${direction === "UP" ? "text-emerald-400" : "text-red-400"}`}>{direction}</span>{" "}
-            to <span className="font-bold text-white font-mono">${parseFloat(targetPrice).toLocaleString()}</span>{" "}
-            within <span className="font-bold text-white">{DURATIONS.find(d => d.hours === duration)?.label}</span>,
-            staking <span className="font-bold text-violet-400">{parseFloat(stake || "0").toFixed(2)} XLM</span>.
+            Predicting{" "}
+            <span className="font-bold text-white">{asset}</span> will go{" "}
+            <span
+              className={`font-bold ${
+                direction === "UP" ? "text-emerald-400" : "text-red-400"
+              }`}
+            >
+              {direction}
+            </span>{" "}
+            to{" "}
+            <span className="font-bold text-white font-mono">
+              ${parseFloat(targetPrice).toLocaleString()}
+            </span>{" "}
+            within{" "}
+            <span className="font-bold text-white">
+              {DURATIONS.find((d) => d.hours === duration)?.label}
+            </span>
+            , staking{" "}
+            <span className="font-bold text-violet-400">
+              {parseFloat(stake || "0").toFixed(2)} XLM
+            </span>
+            .
           </p>
         </div>
       )}
 
       {error && (
         <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-2.5 text-xs text-red-400 flex gap-2">
-          <span>⚠️</span><span>{error}</span>
+          <span>⚠️</span>
+          <span>{error}</span>
         </div>
       )}
       {success && (
         <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-4 py-2.5 text-xs text-emerald-400 flex gap-2">
-          <span>✅</span><span>Prediction submitted to Stellar!</span>
+          <span>✅</span>
+          <span>Prediction submitted to Stellar!</span>
         </div>
       )}
 
@@ -246,12 +323,20 @@ export default function CreatePrediction({
         {submitting ? (
           <span className="flex items-center justify-center gap-2">
             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              <circle
+                className="opacity-25" cx="12" cy="12" r="10"
+                stroke="currentColor" strokeWidth="4" fill="none"
+              />
+              <path
+                className="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
             </svg>
             Submitting to Stellar…
           </span>
-        ) : "🚀 Submit Prediction"}
+        ) : (
+          "🚀 Submit Prediction"
+        )}
       </button>
     </form>
   );
