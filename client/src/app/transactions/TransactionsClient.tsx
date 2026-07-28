@@ -222,7 +222,7 @@ export default function TransactionsClient() {
         ) : (
           <div className="rounded-2xl border border-zinc-800 overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-[40px_80px_64px_80px_1fr_1fr_110px_100px] gap-3 px-4 py-2.5 bg-zinc-900/80 border-b border-zinc-800 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+            <div className="hidden md:grid grid-cols-[40px_80px_64px_80px_1fr_1fr_110px_minmax(0,1fr)] gap-3 px-4 py-2.5 bg-zinc-900/80 border-b border-zinc-800 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
               <button onClick={() => toggleSort("id")} className="text-left hover:text-zinc-300 transition-colors">
                 # <SortIcon k="id" />
               </button>
@@ -240,7 +240,7 @@ export default function TransactionsClient() {
               <button onClick={() => toggleSort("deadline")} className="text-left hover:text-zinc-300 transition-colors">
                 Deadline <SortIcon k="deadline" />
               </button>
-              <span>Creator</span>
+              <span>Creator address</span>
             </div>
 
             {/* Table rows */}
@@ -253,7 +253,7 @@ export default function TransactionsClient() {
                 return (
                   <div
                     key={p.id}
-                    className={`grid grid-cols-[40px_80px_64px_80px_1fr_1fr_110px_100px] gap-3 px-4 py-3 items-center text-sm transition-colors hover:bg-zinc-800/30 ${
+                    className={`flex flex-col md:grid md:grid-cols-[40px_80px_64px_80px_1fr_1fr_110px_minmax(0,1fr)] gap-3 px-4 py-3 items-start md:items-center text-sm transition-colors hover:bg-zinc-800/30 ${
                       idx % 2 === 0 ? "" : "bg-zinc-900/20"
                     }`}
                   >
@@ -296,9 +296,9 @@ export default function TransactionsClient() {
                     {/* Deadline */}
                     <DeadlineCell deadline={p.deadline} now={now} />
 
-                    {/* Creator */}
-                    <span className="text-[10px] font-mono text-zinc-600 truncate">
-                      {p.creator ? `${p.creator.slice(0, 4)}…${p.creator.slice(-4)}` : "—"}
+                    {/* Creator — full address, never truncated */}
+                    <span className="text-[10px] font-mono text-zinc-400 break-all leading-relaxed select-all">
+                      {p.creator || "—"}
                     </span>
                   </div>
                 );

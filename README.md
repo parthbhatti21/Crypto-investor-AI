@@ -555,15 +555,22 @@ e9295d8  Initialize repository
 ```
 Crypto-investor-AI/
 ├── client/                          # Next.js frontend
+│   ├── data/
+│   │   └── feedback.json            # User feedback submissions (appended by API)
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── page.tsx             # Main page
-│   │   │   ├── layout.tsx           # Root layout
+│   │   │   ├── page.tsx             # Main landing page
+│   │   │   ├── layout.tsx           # Root layout (Analytics, SpeedInsights, OnboardingModal, FeedbackWidget)
 │   │   │   ├── globals.css          # Global styles
+│   │   │   ├── admin/
+│   │   │   │   └── feedback/page.tsx # Admin feedback dashboard (/admin/feedback?key=)
 │   │   │   └── api/
-│   │   │       └── market-insights/ # AI market signals API route
+│   │   │       ├── market-insights/ # AI market signals API route
+│   │   │       └── feedback/        # POST feedback, GET submissions (admin-key protected)
 │   │   ├── components/
 │   │   │   ├── WalletConnect.tsx    # Freighter wallet connect/disconnect
+│   │   │   ├── OnboardingModal.tsx  # First-visit onboarding (3-step guided flow)
+│   │   │   ├── FeedbackWidget.tsx   # Floating feedback button + rating modal
 │   │   │   ├── CreatePrediction.tsx # Prediction creation form
 │   │   │   ├── PredictionBoard.tsx  # List of all predictions
 │   │   │   ├── PredictionCard.tsx   # Individual prediction (back/resolve/claim)
@@ -572,9 +579,12 @@ Crypto-investor-AI/
 │   │   │   ├── AiInsights.tsx       # AI market signal cards
 │   │   │   ├── MarketTicker.tsx     # Live scrolling price ticker
 │   │   │   └── Toast.tsx            # Notification system
+│   │   ├── context/
+│   │   │   └── WalletContext.tsx    # App-wide wallet state (address, balance, connect/disconnect)
 │   │   └── hooks/
-│   │       └── contract.ts          # All Stellar/Soroban/Horizon logic
-│   ├── .env.local                   # Contract address (not committed)
+│   │       ├── contract.ts          # All Stellar/Soroban/Horizon + freighter-api logic
+│   │       └── WALLET_INTEGRATION.md # Freighter-api call map for reference
+│   ├── .env.local                   # Contract address + ADMIN_KEY (not committed)
 │   └── package.json
 └── contract/                        # Soroban smart contract (Rust)
     └── contracts/contract/
@@ -766,19 +776,99 @@ A successful XLM send on testnet:
 
 ---
 
+## Level 4 requirements — Production MVP
+
+### Analytics & monitoring
+
+Vercel Analytics and Speed Insights are integrated via `layout.tsx`:
+
+```tsx
+// client/src/app/layout.tsx
+import { Analytics }     from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
+// Rendered at the body level — active automatically on Vercel deployments
+<Analytics />
+<SpeedInsights />
+```
+
+- **Vercel Analytics** — tracks page views, unique visitors, referrers, and top pages. Dashboard available at vercel.com → project → Analytics tab.
+- **Speed Insights** — monitors Core Web Vitals (LCP, FID, CLS) per page in real deployments.
+- **Server-side logging** — every `/api/market-insights` and `/api/feedback` error is logged via `console.error`, captured in Vercel's Function Logs.
+
+### User onboarding flow
+
+`client/src/components/OnboardingModal.tsx` — shown once to new visitors who haven't connected a wallet, guiding them through three steps:
+
+1. **Install Freighter** — links to freighter.app
+2. **Fund with Friendbot** — links to friendbot.stellar.org, explains Testnet XLM
+3. **Connect & Start** — prompts them to click the Connect button
+
+The modal stores a `sp_onboarded` key in `localStorage` after dismissal and auto-closes the moment the wallet connects. Shown on every page via `layout.tsx`.
+
+### Feedback collection
+
+`client/src/components/FeedbackWidget.tsx` — floating "Feedback" button (bottom-right) that opens a compact modal:
+- 1–5 star rating
+- Optional free-text comment (up to 500 chars)
+- Submits to `POST /api/feedback` with the connected wallet address (or "anonymous")
+
+`client/src/app/api/feedback/route.ts` — API route that:
+- Validates rating (1–5) and sanitises message length
+- Appends entry to `client/data/feedback.json` with ID, rating, message, address, and ISO timestamp
+- Returns `{ ok: true, id }` on success
+
+`client/src/app/admin/feedback/page.tsx` — password-protected admin view at `/admin/feedback?key=<ADMIN_KEY>`:
+- Summary cards: total responses, average rating, wallet count, comment count
+- Rating distribution bar chart
+- Full list sorted newest-first with star display, message, wallet address, and timestamp
+
+Admin key is configured via `ADMIN_KEY` environment variable in `.env.local` / Vercel dashboard.
+
+### Production deployment
+
+Deployed to Vercel via `client/vercel.json`. Build command: `bun run build`. Framework: Next.js.
+
+Security headers configured in `next.config.ts`:
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `X-XSS-Protection: 1; mode=block`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+
+### Mobile responsive UI
+
+All layouts use Tailwind responsive prefixes (`sm:`, `md:`, `lg:`). Tested at 375px (iPhone SE), 768px (tablet), 1280px (desktop). The onboarding modal and feedback widget are bottom-anchored on mobile and centered on desktop.
+
+---
+
 ## Submission checklist
+
+### Level 2 / 3 items
 
 | Item | Status | Detail |
 |---|---|---|
 | Public GitHub repository | ✅ | https://github.com/parthbhatti21/Crypto-investor-AI |
 | README with complete documentation | ✅ | This file |
-| 10+ meaningful commits | ✅ | See `git log --oneline` |
-| Live demo link | ✅ | Deployed on Vercel (set Root Directory to `client`) |
 | Contract deployment address | ✅ | `CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO` |
 | Transaction hash | ✅ | `6bebff751d11ed36e909c48ac4c356286ba1985dded94a11f3f7b2f9188bfe8f` |
+| Smart contract tests (3+) | ✅ | 13 passing — `cargo test` in `contract/contracts/contract` |
+| CI/CD pipeline | ✅ | GitHub Actions at `.github/workflows/ci.yml` |
+
+### Level 4 items
+
+| Item | Status | Detail |
+|---|---|---|
+| Production deployment | ✅ | Deployed on Vercel (`client/vercel.json`) |
+| Minimum 15+ meaningful commits | ✅ | See `git log --oneline` |
+| Live demo link | ✅ | Vercel deployment URL (set Root Directory to `client`) |
 | Mobile responsive UI screenshot | ✅ | See `docs/` folder |
-| CI/CD pipeline screenshot | ✅ | GitHub Actions at `.github/workflows/ci.yml` |
-| Test output (3+ passing) | ✅ | 13 passing — `cargo test` in contract directory |
+| Analytics / monitoring setup | ✅ | `@vercel/analytics` + `@vercel/speed-insights` in `layout.tsx` |
+| User onboarding flow | ✅ | `OnboardingModal.tsx` — 3-step guided flow on first visit |
+| Feedback collection | ✅ | `FeedbackWidget.tsx` + `POST /api/feedback` + `/admin/feedback` |
+| Proof of 10+ user wallet interactions | ✅ | On-chain predictions/transactions on Stellar testnet (see Stellar Expert explorer link above) |
+| Basic user feedback summary | ✅ | Collected via in-app widget; view at `/admin/feedback?key=<ADMIN_KEY>` |
+| Demo video link | ⬜ | Add after recording |
 
 ---
 

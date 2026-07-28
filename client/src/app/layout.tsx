@@ -14,12 +14,30 @@
  *   src/context/WalletContext.tsx  — React context that wraps the above for
  *                                   app-wide state (address, balance, connect/disconnect).
  *
- *   src/components/WalletConnect.tsx — "Connect Freighter" button component.
- *   src/components/Nav.tsx           — WalletButton in the top nav (uses WalletContext).
- *   src/components/SendXLM.tsx       — XLM payment form (calls sendXlmPayment → signTransaction).
+ *   src/components/WalletConnect.tsx    — "Connect Freighter" button component.
+ *   src/components/Nav.tsx              — WalletButton in the top nav (uses WalletContext).
+ *   src/components/SendXLM.tsx          — XLM payment form (calls sendXlmPayment → signTransaction).
  *   src/components/CreatePrediction.tsx — Prediction form (calls createPrediction → signTransaction).
  *
- * WalletProvider (below) wraps the entire app so every page has access to the
+ * ── Analytics & monitoring ────────────────────────────────────────────────
+ *
+ *   <Analytics />      from @vercel/analytics   — page-view + event tracking (zero-config on Vercel)
+ *   <SpeedInsights />  from @vercel/speed-insights — Core Web Vitals monitoring
+ *
+ * ── User onboarding ───────────────────────────────────────────────────────
+ *
+ *   <OnboardingModal /> — shown once to new visitors (localStorage key: sp_onboarded).
+ *                         Walks through: install Freighter → fund with Friendbot → connect.
+ *                         Auto-dismisses when wallet connects.
+ *
+ * ── Feedback collection ───────────────────────────────────────────────────
+ *
+ *   <FeedbackWidget />  — floating "Feedback" button (bottom-right).
+ *                         Opens a star-rating + comment modal.
+ *                         Submits to POST /api/feedback → persisted in data/feedback.json.
+ *                         View submissions at /admin/feedback.
+ *
+ * WalletProvider wraps the entire app so every page has access to the
  * connected wallet address and balance without prop-drilling.
  * ─────────────────────────────────────────────────────────────────────────
  */
@@ -27,9 +45,13 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastProvider } from "@/components/Toast";
 import { WalletProvider } from "@/context/WalletContext";
 import Nav from "@/components/Nav";
+import OnboardingModal from "@/components/OnboardingModal";
+import FeedbackWidget from "@/components/FeedbackWidget";
 import { Sparkles } from "lucide-react";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -77,8 +99,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </div>
             </footer>
+
+            {/* ── Site-wide overlays ── */}
+            <OnboardingModal />
+            <FeedbackWidget />
           </ToastProvider>
         </WalletProvider>
+
+        {/* Vercel Analytics & Speed Insights — active on Vercel deployments */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
