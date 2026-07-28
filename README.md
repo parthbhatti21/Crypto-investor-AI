@@ -21,7 +21,7 @@ The platform also provides real-time AI market signals derived from live price d
 
 ## Live demo
 
-App runs at **http://localhost:3000** (local dev).
+**Live app:** https://crypto-investor-ai.vercel.app/
 
 **Deployed contract:** `CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO`
 View on Stellar Expert: https://stellar.expert/explorer/testnet/contract/CBMYC7K2LSS6UBB6FOJVLLIL6ZKBB3U4AWRIWROC4EKHPKA6QMR5W4DO
@@ -840,6 +840,17 @@ Security headers configured in `next.config.ts`:
 
 All layouts use Tailwind responsive prefixes (`sm:`, `md:`, `lg:`). Tested at 375px (iPhone SE), 768px (tablet), 1280px (desktop). The onboarding modal and feedback widget are bottom-anchored on mobile and centered on desktop.
 
+#### Screenshots — mobile & desktop UI
+
+![UI screenshot 1](docs/Screenshot%202026-07-29%20at%2001.27.34.png)
+![UI screenshot 2](docs/Screenshot%202026-07-29%20at%2001.28.07.png)
+![UI screenshot 3](docs/Screenshot%202026-07-29%20at%2001.28.15.png)
+![UI screenshot 4](docs/Screenshot%202026-07-29%20at%2001.28.24.png)
+![UI screenshot 5](docs/Screenshot%202026-07-29%20at%2001.28.34.png)
+![UI screenshot 6](docs/Screenshot%202026-07-29%20at%2001.29.01.png)
+![UI screenshot 7](docs/Screenshot%202026-07-29%20at%2001.29.12.png)
+![UI screenshot 8](docs/Screenshot%202026-07-29%20at%2001.29.23.png)
+
 ---
 
 ## Submission checklist
@@ -861,7 +872,7 @@ All layouts use Tailwind responsive prefixes (`sm:`, `md:`, `lg:`). Tested at 37
 |---|---|---|
 | Production deployment | ✅ | Deployed on Vercel (`client/vercel.json`) |
 | Minimum 15+ meaningful commits | ✅ | See `git log --oneline` |
-| Live demo link | ✅ | Vercel deployment URL (set Root Directory to `client`) |
+| Live demo link | ✅ | https://crypto-investor-ai.vercel.app/ |
 | Mobile responsive UI screenshot | ✅ | See `docs/` folder |
 | Analytics / monitoring setup | ✅ | `@vercel/analytics` + `@vercel/speed-insights` in `layout.tsx` |
 | User onboarding flow | ✅ | `OnboardingModal.tsx` — 3-step guided flow on first visit |

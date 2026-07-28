@@ -146,8 +146,10 @@ export async function createPrediction(
 }
 
 export async function backPrediction(caller: string, predictionId: number, amount: string) {
+  // amount is in XLM (user-facing), contract expects i128 stroops (1 XLM = 10_000_000 stroops)
+  const amountStroops = parseXlm(amount);
   return buildAndSign("back_prediction", [
-    toScValAddress(caller), toScValU64(predictionId), toScValI128(amount),
+    toScValAddress(caller), toScValU64(predictionId), toScValI128(amountStroops),
   ], caller);
 }
 
