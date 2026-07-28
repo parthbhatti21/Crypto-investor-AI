@@ -7,10 +7,10 @@ const nextConfig: NextConfig = {
   // Compress output
   compress: true,
 
-  // Security headers for production
   async headers() {
     return [
       {
+        // ── Security headers (all routes) ───────────────────────────
         source: "/(.*)",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
@@ -21,13 +21,19 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
           },
+          // ── ngrok interstitial bypass ───────────────────────────────
+          // When the app is tunnelled via ngrok free tier, ngrok shows a
+          // browser-warning interstitial that prevents Freighter from
+          // communicating with the page (it sees a different origin).
+          // Setting this response header tells the ngrok agent to skip the
+          // warning page and serve the app directly, so wallet connection
+          // works exactly as on localhost.
+          // Docs: https://ngrok.com/docs/http/#ngrok-skip-browser-warning
+          { key: "ngrok-skip-browser-warning", value: "true" },
         ],
       },
     ];
   },
-
-  // Redirect bare domain to www on production (optional, handled by Vercel)
-  // async redirects() { return []; },
 };
 
 export default nextConfig;
