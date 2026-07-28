@@ -1,5 +1,32 @@
 "use client";
 
+/**
+ * Nav — persistent top navigation bar rendered on every page.
+ *
+ * ── Freighter wallet integration ─────────────────────────────────────────
+ *
+ * WalletButton (below) drives the connect / connected / disconnect UI.
+ * It consumes WalletContext whose implementation (src/context/WalletContext.tsx)
+ * delegates to the three @stellar/freighter-api functions in src/hooks/contract.ts:
+ *
+ *   connect()     → connectWallet()     → freighter.requestAccess()
+ *                                          Triggers the Freighter approval popup.
+ *                                          Returns the user's Stellar G-address.
+ *
+ *   auto-reconnect on mount              → freighter.isAllowed()
+ *                                          + freighter.getAddress()
+ *                                          Silent reconnect if site was previously approved.
+ *
+ *   disconnect()  → local state reset   (no freighter call needed — Freighter has no
+ *                                        revoke API; UI simply forgets the address)
+ *
+ * Signing happens downstream in src/hooks/contract.ts whenever the user submits
+ * a prediction or sends XLM:
+ *   buildAndSign()      → freighter.signTransaction()   (Soroban contract calls)
+ *   sendXlmPayment()    → freighter.signTransaction()   (Horizon XLM payments)
+ * ─────────────────────────────────────────────────────────────────────────
+ */
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";

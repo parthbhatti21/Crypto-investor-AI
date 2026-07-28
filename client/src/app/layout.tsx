@@ -1,3 +1,29 @@
+/**
+ * Root layout — entry point for every page in the app.
+ *
+ * ── Stellar / Freighter wallet integration ────────────────────────────────
+ *
+ * All wallet logic lives in two files:
+ *
+ *   src/hooks/contract.ts          — raw @stellar/freighter-api calls:
+ *     • connectWallet()            → freighter.requestAccess()   (connect + address retrieval)
+ *     • getWalletAddress()         → freighter.isAllowed() + freighter.getAddress()  (silent reconnect)
+ *     • buildAndSign()             → freighter.signTransaction()  (Soroban contract calls)
+ *     • sendXlmPayment()           → freighter.signTransaction()  (native XLM payments via Horizon)
+ *
+ *   src/context/WalletContext.tsx  — React context that wraps the above for
+ *                                   app-wide state (address, balance, connect/disconnect).
+ *
+ *   src/components/WalletConnect.tsx — "Connect Freighter" button component.
+ *   src/components/Nav.tsx           — WalletButton in the top nav (uses WalletContext).
+ *   src/components/SendXLM.tsx       — XLM payment form (calls sendXlmPayment → signTransaction).
+ *   src/components/CreatePrediction.tsx — Prediction form (calls createPrediction → signTransaction).
+ *
+ * WalletProvider (below) wraps the entire app so every page has access to the
+ * connected wallet address and balance without prop-drilling.
+ * ─────────────────────────────────────────────────────────────────────────
+ */
+
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
